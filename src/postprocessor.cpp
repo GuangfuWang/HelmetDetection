@@ -31,7 +31,7 @@ void HelmetDetectionPost::Run(const SharedRef<TrtResults> &res, cv::Mat &img,int
 	float scale_y = (float)img.rows / (float)Config::TARGET_SIZE[0];
 
 	std::vector<Box> curr;
-	printf("Num of detections: %f\n",num_dets[0]);
+//	printf("Num of detections: %f\n",num_dets[0]);
 	for (int j = 0; j < 100; ++j) {
 		Box b;
 //		b.class_id = Util::round2int(dets_classes[j]);
@@ -47,13 +47,13 @@ void HelmetDetectionPost::Run(const SharedRef<TrtResults> &res, cv::Mat &img,int
 		b.x_max = (int)(dets[4+j*6] * scale_x);
 		b.y_max = (int)(dets[5+j*6] * scale_y);
 
-		if (b.score > 0) {
-			std::cout <<"class_id: " <<b.class_id
-					  << "; score: " << b.score
-					  << "; x0: " << b.x_min << "; y0: " << b.y_min
-					  << "; x1: " << b.x_max << "; y1: " << b.y_max
-					  << std::endl;
-		}
+//		if (b.score > 0) {
+//			std::cout <<"class_id: " <<b.class_id
+//					  << "; score: " << b.score
+//					  << "; x0: " << b.x_min << "; y0: " << b.y_min
+//					  << "; x1: " << b.x_max << "; y1: " << b.y_max
+//					  << std::endl;
+//		}
 		curr.push_back(b);
 	}
 	auto b = curr;

@@ -68,7 +68,7 @@ void TrtDeploy::Infer(const cv::Mat &img, SharedRef<TrtResults> &result)
 		auto timing = Util::toc();
 		if (timing > 0) {
 			m_curr_fps = 1000.0f / (float)timing;
-			std::cout << "Current FPS: " << m_curr_fps << std::endl;
+//			std::cout << "Current FPS: " << m_curr_fps << std::endl;
 		}
 	}
 
