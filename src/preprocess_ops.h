@@ -37,14 +37,16 @@ namespace helmet {
 	 */
     class NormalizeImage final : public PreprocessOp {
     public:
-		explicit NormalizeImage(SharedRef<Config>& config): PreprocessOp(config){
-		};
+		explicit NormalizeImage(SharedRef<Config>& config);
 		/**
 		 * @brief implementation function.
 		 * @param data image data, from a vector->data().
 		 * @param num number of images.
 		 */
         void Run(std::vector<cv::cuda::GpuMat> &data) override;
+	private:
+		cv::cuda::GpuMat m_mul;
+		cv::cuda::GpuMat m_subtract;
     };
 	/**
 	 * @brief do nothing, yeah yeah i know it is silly, this class is kept only to make somebody happy, --!>

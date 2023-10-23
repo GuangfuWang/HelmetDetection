@@ -3,48 +3,18 @@
 
 namespace helmet
 {
-const float NORM_CONST = 0.00392157f;//1.0/255.0
 
 #ifdef PREPROCESS_GPU
-
-cv::cuda::GpuMat PreprocessorFactory::SUBTRACT_MATRIX = cv::cuda::GpuMat();
-cv::cuda::GpuMat PreprocessorFactory::MUL_MATRIX = cv::cuda::GpuMat();
 
 void PreprocessorFactory::Init()
 {
 	assert(m_config->N_STD[0] > 0.0f && m_config->N_STD[1] > 0.0f && m_config->N_STD[2] > 0.0f);
-
-	auto s = m_config->INPUT_SHAPE.size();
-	const auto ori_w = m_config->TARGET_SIZE[1];
-	const auto ori_h = m_config->TARGET_SIZE[0];
-	SCALE_W = (float)m_config->TARGET_SIZE[1] / (float)ori_w;
-	SCALE_H = (float)m_config->TARGET_SIZE[0] / (float)ori_h;
-	//init the matrix.
-	const float coe_1 = NORM_CONST / m_config->N_STD[0];
-	const float coe_2 = NORM_CONST / m_config->N_STD[1];
-	const float coe_3 = NORM_CONST / m_config->N_STD[2];
-	const float off_1 = -m_config->N_MEAN[0] / m_config->N_STD[0];
-	const float off_2 = -m_config->N_MEAN[1] / m_config->N_STD[1];
-	const float off_3 = -m_config->N_MEAN[2] / m_config->N_STD[2];
-	MUL_MATRIX = cv::cuda::GpuMat(ori_h, ori_w, CV_32FC3,
-								  cv::Scalar(coe_1, coe_2, coe_3));
-	SUBTRACT_MATRIX = cv::cuda::GpuMat(ori_h, ori_w, CV_32FC3,
-									   cv::Scalar(off_1, off_2, off_3));
 	INIT_FLAG = true;
 }
 
 PreprocessorFactory::PreprocessorFactory(SharedRef<Config>& config)
 {
 	m_config = config;
-//	if (!m_ops) {
-//		m_ops = createSharedRef<Factory<PreprocessOp>>();
-//	}
-//	m_ops->registerType<TopDownEvalAffine>("TopDownEvalAffine");
-//	m_ops->registerType<Resize>("Resize");
-//	m_ops->registerType<LetterBoxResize>("LetterBoxResize");
-//	m_ops->registerType<NormalizeImage>("NormalizeImage");
-//	m_ops->registerType<PadStride>("PadStride");
-//	m_ops->registerType<Permute>("Permute");
 
 	m_workers["TopDownEvalAffine"] = new TopDownEvalAffine(config);
 	m_workers["Resize"] = new Resize(config);
@@ -77,11 +47,8 @@ void PreprocessorFactory::CvtForGpuMat(const std::vector<cv::Mat> &input,
 void PreprocessorFactory::Run(const std::vector<cv::Mat> &input, SharedRef<ImageBlob> &output)
 {
 	if (!INIT_FLAG) {
-		PreprocessorFactory::Init();
+		Init();
 		INIT_FLAG = true;
-//		for (const auto &i : m_config->PIPELINE_TYPE) {
-//			m_workers[i] = m_ops->create(i);
-//		}
 		if (m_config->INPUT_SHAPE[m_config->INPUT_SHAPE.size() - 1] != input[0].cols) {
 			m_config->INPUT_SHAPE[m_config->INPUT_SHAPE.size() - 1] = input[0].cols;
 			SCALE_W = (float)m_config->TARGET_SIZE[1] / (float)input[0].cols;
@@ -118,9 +85,6 @@ void PreprocessorFactory::Run(const std::vector<cv::Mat> &input, SharedRef<Image
 
 PreprocessorFactory::~PreprocessorFactory()
 {
-//	if (m_ops) {
-//		m_ops->destroy();
-//	}
 	for(auto& [name,item]:m_workers){
 		delete item;
 		item = nullptr;

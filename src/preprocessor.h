@@ -10,8 +10,6 @@
 namespace helmet
 {
 
-extern const float NORM_CONST;///< normalization constant, should be 1.0/255.0.
-
 /**
  * @brief utility struct for image data in-out to GPU.
  */
@@ -81,9 +79,6 @@ private:
 	void CvtForGpuMat(const std::vector<cv::Mat> &input, std::vector<cv::cuda::GpuMat>& frames, int &num);
 
 public:
-	//these two matrix is used for normalizing the frame image channel wise.
-	static cv::cuda::GpuMat MUL_MATRIX;///< used for normalization.
-	static cv::cuda::GpuMat SUBTRACT_MATRIX;///< used for channel wise normalization.
 	///@note this CONFIG must be set before actually inferring.
 	bool INIT_FLAG= false;///< indicate initialization status.
 	float SCALE_W= 1.0f;///< indicate scale of width.

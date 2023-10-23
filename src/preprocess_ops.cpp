@@ -9,7 +9,27 @@ namespace helmet
 void NormalizeImage::Run(std::vector<cv::cuda::GpuMat> &data)
 {
 	NormalizeImageOnGpu(data.data(), *m_stream, data.size(),
-						PreprocessorFactory::MUL_MATRIX, PreprocessorFactory::SUBTRACT_MATRIX);
+						m_mul, m_subtract);
+}
+NormalizeImage::NormalizeImage(SharedRef<Config> &config)
+	: PreprocessOp(config)
+{
+	m_config = config;
+	assert(m_config->N_STD[0]>0&&m_config->N_STD[1]>0&&m_config->N_STD[2]>0);
+	const auto ori_w = m_config->TARGET_SIZE[1];
+	const auto ori_h = m_config->TARGET_SIZE[0];
+	// normalization constant, should be 1.0/255.0;
+	const auto normalizer = 0.00392157f;
+	const float coe_1 = normalizer / m_config->N_STD[0];
+	const float coe_2 = normalizer / m_config->N_STD[1];
+	const float coe_3 = normalizer / m_config->N_STD[2];
+	const float off_1 = -m_config->N_MEAN[0] / m_config->N_STD[0];
+	const float off_2 = -m_config->N_MEAN[1] / m_config->N_STD[1];
+	const float off_3 = -m_config->N_MEAN[2] / m_config->N_STD[2];
+	m_mul = cv::cuda::GpuMat(ori_h, ori_w, CV_32FC3,
+								  cv::Scalar(coe_1, coe_2, coe_3));
+	m_subtract = cv::cuda::GpuMat(ori_h, ori_w, CV_32FC3,
+									   cv::Scalar(off_1, off_2, off_3));
 }
 
 void Permute::Run(std::vector<cv::cuda::GpuMat> &data)
