@@ -76,7 +76,7 @@ thread_local int   Config::TEXT_OFF_Y = 50;
 
 thread_local std::string Config::POSTPROCESS_NAME = "HelmetDetectionPost";
 
-thread_local std::vector<std::string> Config::POST_TEXT = {"Head","Helmet"};
+thread_local std::vector<std::string> Config::POST_TEXT = {"Head", "Helmet"};
 
 bool Config::init = false;
 
@@ -84,10 +84,14 @@ void Config::LoadConfigFile(int argc, char **argv, const std::string &file)
 {
 	if (init)return;
 	init = true;
+	std::cout << "Start parsing the config file for Helmet Detection" << std::endl;
 	Config::MODEL_NAME = DEPLOY_MODEL;
+	std::cout << "Read from cmake config with model name: " << DEPLOY_MODEL << std::endl;
 	Config::INPUT_NAME = Util::parseNames(MODEL_INPUT_NAME, ' ');
+	std::cout << "Read from cmake config with inputs: [" << MODEL_INPUT_NAME <<"]"<< std::endl;
 	Config::OUTPUT_NAMES.clear();
 	Config::OUTPUT_NAMES = Util::parseNames(MODEL_OUTPUT_NAMES, ' ');
+	std::cout << "Read from cmake config with outputs: [" << MODEL_OUTPUT_NAMES <<"]"<< std::endl;
 
 	if (!Util::checkFileExist(file)) {
 		std::cerr << "Config file non exists! Aborting..." << std::endl;
@@ -100,15 +104,29 @@ void Config::LoadConfigFile(int argc, char **argv, const std::string &file)
 		auto model_node = config["MODEL"];
 		if (model_node["MODEL_NAME"].IsDefined()) {
 			Config::MODEL_NAME = model_node["MODEL_NAME"].as<std::string>();
+			std::cout << "Read from YAML with model name: " << Config::MODEL_NAME << std::endl;
 		}
 		if (model_node["BACKBONE"].IsDefined()) {
 			Config::BACKBONE = model_node["BACKBONE"].as<std::string>();
+			std::cout << "Read from YAML with backbone: " << Config::BACKBONE << std::endl;
 		}
 		if (model_node["INPUT_NAME"].IsDefined()) {
+			Config::INPUT_NAME.clear();
 			Config::INPUT_NAME = model_node["INPUT_NAME"].as<std::vector<std::string>>();
+
+			std::cout << "Read from YAML with inputs: [\t";
+			for (auto &each : Config::INPUT_NAME)
+				std::cout << each << "\t";
+			std::cout <<"]"<< std::endl;
 		}
 		if (model_node["OUTPUT_NAMES"].IsDefined()) {
+			Config::OUTPUT_NAMES.clear();
 			Config::OUTPUT_NAMES = model_node["OUTPUT_NAMES"].as<std::vector<std::string>>();
+
+			std::cout << "Read from YAML with outputs: [\t";
+			for (auto &each : Config::OUTPUT_NAMES)
+				std::cout << each << "\t";
+			std::cout <<"]"<< std::endl;
 		}
 	}
 	else {
@@ -119,70 +137,114 @@ void Config::LoadConfigFile(int argc, char **argv, const std::string &file)
 		auto model_node = config["DATA"];
 		if (model_node["VIDEO_NAME"].IsDefined()) {
 			Config::VIDEO_FILE = model_node["VIDEO_NAME"].as<std::string>();
+			std::cout << "Read from YAML with videos: " << Config::VIDEO_FILE << std::endl;
 		}
 		if (model_node["RTSP_SITE"].IsDefined()) {
 			Config::RTSP_SITE = model_node["RTSP_SITE"].as<std::string>();
+			std::cout << "Read from YAML with backbone: " << Config::RTSP_SITE << std::endl;
 		}
 		if (model_node["INPUT_SHAPE"].IsDefined()) {
 			Config::INPUT_SHAPE = model_node["INPUT_SHAPE"].as<std::vector<int>>();
+
+			std::cout << "Read from YAML with input shapes: [\t";
+			for (auto &each : Config::INPUT_SHAPE)
+				std::cout << each << "\t";
+			std::cout <<"]"<< std::endl;
 		}
 	}
 	else {
-		std::cerr << "Please set DATA, " << std::endl;
+		std::cerr << "Please set DATA..." << std::endl;
 	}
 
 	if (config["PIPELINE"].IsDefined()) {
 		auto model_node = config["PIPELINE"];
 		if (model_node["STRIDE"].IsDefined()) {
 			Config::STRIDE = model_node["STRIDE"].as<unsigned int>();
+			std::cout << "Read from YAML with stride: " << Config::STRIDE << std::endl;
 		}
 		if (model_node["INTERP"].IsDefined()) {
 			Config::INTERP = model_node["INTERP"].as<unsigned int>();
+			std::cout << "Read from YAML with interpolation: " << Config::INTERP << std::endl;
 		}
 		if (model_node["SAMPLE_INTERVAL"].IsDefined()) {
 			Config::SAMPLE_INTERVAL = model_node["SAMPLE_INTERVAL"].as<unsigned int>();
+			std::cout << "Read from YAML with sample interval: " << Config::SAMPLE_INTERVAL << std::endl;
 		}
 		if (model_node["TRIGGER_LEN"].IsDefined()) {
 			Config::TRIGGER_LEN = model_node["TRIGGER_LEN"].as<unsigned int>();
+			std::cout << "Read from YAML with trigger length: " << Config::TRIGGER_LEN << std::endl;
 		}
 		if (model_node["BATCH_SIZE"].IsDefined()) {
 			Config::BATCH_SIZE = model_node["BATCH_SIZE"].as<unsigned int>();
+			std::cout << "Read from YAML with batch size: " << Config::BATCH_SIZE << std::endl;
 		}
 		if (model_node["THRESHOLD"].IsDefined()) {
 			Config::THRESHOLD = model_node["THRESHOLD"].as<float>();
+			std::cout << "Read from YAML with threshold: " << Config::THRESHOLD << std::endl;
 		}
 		if (model_node["SCORE_THRESHOLD"].IsDefined()) {
 			Config::SCORE_THRESHOLD = model_node["SCORE_THRESHOLD"].as<float>();
+			std::cout << "Read from YAML with score threshold: " << Config::SCORE_THRESHOLD << std::endl;
 		}
 		if (model_node["TARGET_CLASS"].IsDefined()) {
 			Config::TARGET_CLASS = model_node["TARGET_CLASS"].as<unsigned int>();
+			std::cout << "Read from YAML with target class: " << Config::TARGET_CLASS << std::endl;
 		}
 		if (model_node["ENABLE_SCALE"].IsDefined()) {
 			Config::ENABLE_SCALE = model_node["ENABLE_SCALE"].as<bool>();
+			std::cout << "Read from YAML with enable scale: " << Config::ENABLE_SCALE << std::endl;
 		}
 		if (model_node["KEEP_RATIO"].IsDefined()) {
 			Config::KEEP_RATIO = model_node["KEEP_RATIO"].as<bool>();
+			std::cout << "Read from YAML with keep ratio option: " << Config::KEEP_RATIO << std::endl;
 		}
 		if (model_node["TIMING"].IsDefined()) {
 			Config::TIMING = model_node["TIMING"].as<bool>();
+			std::cout << "Read from YAML with timing: " << Config::TIMING << std::endl;
 		}
 		if (model_node["TARGET_SIZE"].IsDefined()) {
 			Config::TARGET_SIZE = model_node["TARGET_SIZE"].as<std::vector<int>>();
+
+			std::cout << "Read from YAML with target size: [\t";
+			for (auto &each : Config::TARGET_SIZE)
+				std::cout << each << "\t";
+			std::cout <<"]"<< std::endl;
 		}
 		if (model_node["TRAIN_SIZE"].IsDefined()) {
 			Config::TRAIN_SIZE = model_node["TRAIN_SIZE"].as<std::vector<int>>();
+
+			std::cout << "Read from YAML with train size: [\t";
+			for (auto &each : Config::TRAIN_SIZE)
+				std::cout << each << "\t";
+			std::cout <<"]"<< std::endl;
 		}
 		if (model_node["SHORT_SIZE"].IsDefined()) {
 			Config::SHORT_SIZE = model_node["SHORT_SIZE"].as<unsigned int>();
+			std::cout << "Read from YAML with short size: " << Config::SHORT_SIZE << std::endl;
 		}
 		if (model_node["PIPELINE_TYPE"].IsDefined()) {
 			Config::PIPELINE_TYPE = model_node["PIPELINE_TYPE"].as<std::vector<std::string>>();
+
+			std::cout << "Read from YAML with pipelines: [\t";
+			for (auto &each : Config::PIPELINE_TYPE)
+				std::cout << each << "\t";
+			std::cout <<"]"<< std::endl;
 		}
 		if (model_node["N_MEAN"].IsDefined()) {
 			Config::N_MEAN = model_node["N_MEAN"].as<std::vector<float>>();
+
+			std::cout << "Read from YAML with mean: [\t";
+			for (auto &each : Config::N_MEAN)
+				std::cout << each << "\t";
+			std::cout <<"]"<< std::endl;
 		}
 		if (model_node["N_STD"].IsDefined()) {
 			Config::N_STD = model_node["N_STD"].as<std::vector<float>>();
+
+			std::cout << "Read from YAML with std: [\t";
+			for (auto &each : Config::N_STD)
+				std::cout << each << "\t";
+			std::cout <<"]"<< std::endl;
 		}
 
 	}
@@ -194,46 +256,78 @@ void Config::LoadConfigFile(int argc, char **argv, const std::string &file)
 		auto model_node = config["POSTPROCESS"];
 		if (model_node["POST_MODE"].IsDefined()) {
 			Config::POST_MODE = model_node["POST_MODE"].as<int>();
+			std::cout << "Read from YAML with post mode: " << Config::POST_MODE << std::endl;
 		}
 		if (model_node["TEXT_COLOR"].IsDefined()) {
 			Config::TEXT_COLOR = model_node["TEXT_COLOR"].as<std::vector<unsigned char>>();
 			std::swap(Config::TEXT_COLOR[0], Config::TEXT_COLOR[2]);
+
+			std::cout << "Read from YAML with text color: [\t";
+			for (auto &each : Config::TEXT_COLOR)
+				std::cout << each << "\t";
+			std::cout <<"]"<< std::endl;
 		}
 		if (model_node["BOX_COLOR"].IsDefined()) {
 			Config::BOX_COLOR = model_node["BOX_COLOR"].as<std::vector<unsigned char>>();
 			std::swap(Config::BOX_COLOR[0], Config::BOX_COLOR[2]);
+
+			std::cout << "Read from YAML with box colors: [\t";
+			for (auto &each : Config::BOX_COLOR)
+				std::cout << each << "\t";
+			std::cout <<"]"<< std::endl;
 		}
 		if (model_node["ALARM_TEXT_COLOR"].IsDefined()) {
 			Config::ALARM_TEXT_COLOR = model_node["ALARM_TEXT_COLOR"].as<std::vector<unsigned char>>();
 			std::swap(Config::ALARM_TEXT_COLOR[0], Config::ALARM_TEXT_COLOR[2]);
+
+			std::cout << "Read from YAML with alarm text: [\t";
+			for (auto &each : Config::ALARM_TEXT_COLOR)
+				std::cout << each << "\t";
+			std::cout <<"]"<< std::endl;
 		}
 		if (model_node["ALARM_BOX_COLOR"].IsDefined()) {
 			Config::ALARM_BOX_COLOR = model_node["ALARM_BOX_COLOR"].as<std::vector<unsigned char>>();
 			std::swap(Config::ALARM_BOX_COLOR[0], Config::ALARM_BOX_COLOR[2]);
+
+			std::cout << "Read from YAML with alarm box color: [\t";
+			for (auto &each : Config::ALARM_BOX_COLOR)
+				std::cout << each << "\t";
+			std::cout <<"]"<< std::endl;
 		}
 		if (model_node["TEXT_LINE_WIDTH"].IsDefined()) {
 			Config::TEXT_LINE_WIDTH = model_node["TEXT_LINE_WIDTH"].as<float>();
+			std::cout << "Read from YAML with text line width: " << Config::TEXT_LINE_WIDTH << std::endl;
 		}
 		if (model_node["BOX_LINE_WIDTH"].IsDefined()) {
 			Config::BOX_LINE_WIDTH = model_node["BOX_LINE_WIDTH"].as<int>();
+			std::cout << "Read from YAML with box line width: " << Config::BOX_LINE_WIDTH << std::endl;
 		}
 		if (model_node["TEXT_FONT_SIZE"].IsDefined()) {
 			Config::TEXT_FONT_SIZE = model_node["TEXT_FONT_SIZE"].as<float>();
+			std::cout << "Read from YAML with text font size: " << Config::TEXT_FONT_SIZE << std::endl;
 		}
 		if (model_node["TEXT_OFF_X"].IsDefined()) {
 			Config::TEXT_OFF_X = model_node["TEXT_OFF_X"].as<int>();
 			if (Config::TEXT_OFF_X < 0) {
 				Config::TEXT_OFF_X = Config::INPUT_SHAPE.back() / 2 - 5;
 			}
+			std::cout << "Read from YAML with text pos offset x: " << Config::TEXT_OFF_X << std::endl;
 		}
 		if (model_node["TEXT_OFF_Y"].IsDefined()) {
 			Config::TEXT_OFF_Y = model_node["TEXT_OFF_Y"].as<int>();
+			std::cout << "Read from YAML with text pos offset y: " << Config::TEXT_OFF_Y << std::endl;
 		}
 		if (model_node["POSTPROCESS_NAME"].IsDefined()) {
 			Config::POSTPROCESS_NAME = model_node["POSTPROCESS_NAME"].as<std::string>();
+			std::cout << "Read from YAML with post process name: " << Config::POSTPROCESS_NAME << std::endl;
 		}
 		if (model_node["POST_TEXT"].IsDefined()) {
 			Config::POST_TEXT = model_node["POST_TEXT"].as<std::vector<std::string>>();
+
+			std::cout << "Read from YAML with post text: [\t";
+			for (auto &each : Config::POST_TEXT)
+				std::cout << each << "\t";
+			std::cout <<"]"<< std::endl;
 		}
 	}
 	else {
@@ -255,35 +349,37 @@ void Config::LoadConfigFile(int argc, char **argv, const std::string &file)
 
 	if (!InLayerName.empty()) {
 		Config::INPUT_NAME = Util::parseNames(InLayerName, ' ');
+
+		std::cout << "Read from cmd with inputs: [\t";
+		for (auto &each : Config::INPUT_NAME) {
+			std::cout << each << "\t";
+		}
+		std::cout <<"]"<< std::endl;
 	}
 	if (!OutLayerNames.empty()) {
 		Config::OUTPUT_NAMES.clear();
-		size_t cur = 0;
-		char sep = ';';
-		const std::string &temp = OutLayerNames;
-		if (temp.find_first_of(sep) == std::string::npos)sep = ',';
-		cur = 0;
-		size_t last = 0;
-		while (true) {
-			cur = temp.find(sep, cur);
-			Config::OUTPUT_NAMES.emplace_back(temp.substr(last, cur - last));
-			if (cur == std::string::npos)break;
-			last = cur;
+		Config::OUTPUT_NAMES = Util::parseNames(OutLayerNames, ' ');
+
+		std::cout << "Read from cmd with outputs: [\t";
+		for (auto &each : Config::OUTPUT_NAMES) {
+			std::cout << each << "\t";
 		}
+		std::cout <<"]"<< std::endl;
 	}
 	if (!ModelName.empty()) {
 		Config::MODEL_NAME = ModelName;
+		std::cout<<"Read from cmd with model file: "<<Config::MODEL_NAME<<std::endl;
 	}
 
 	if (!helmet::Util::checkFileExist(Config::MODEL_NAME)) {
 		std::cout << Config::MODEL_NAME << std::endl;
 		std::cerr << "Model does not exists!" << std::endl;
 		std::cerr << "Please check the model path..." << std::endl;
-		exit(EXIT_FAILURE);
 	}
 
 	if (!VideoFile.empty()) {
 		Config::VIDEO_FILE = VideoFile;
+		std::cout<<"Read from cmd with video file: "<<Config::VIDEO_FILE<<std::endl;
 	}
 }
 

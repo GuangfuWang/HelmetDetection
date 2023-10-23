@@ -5,7 +5,7 @@
 #include <opencv2/cudaarithm.hpp>
 #include "trt_deploy.h"
 #include "util.h"
-#include <opencv4/opencv2/core/cuda.hpp>
+#include <opencv2/core/cuda.hpp>
 namespace helmet
 {
 

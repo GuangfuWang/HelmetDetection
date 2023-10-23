@@ -2,7 +2,6 @@ MODEL:
   MODEL_NAME: "../models/helmet_yolov3.engine"
   BACKBONE: "ResNet50"
   INPUT_NAME: ["im_shape","image", "scale_factor"]
-  # OUTPUT_NAMES: [ "num_dets","det_boxes","det_scores","det_classes"]
   OUTPUT_NAMES: [ "multiclass_nms3_0.tmp_0","multiclass_nms3_0.tmp_2"]
 
 DATA:

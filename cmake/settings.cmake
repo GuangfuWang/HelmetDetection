@@ -12,8 +12,8 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 option(GEN_TEST "Build fight test program." ON)
 option(PREPROCESS_GPU "Use GPU version of preprocessing pipeline" ON)
 set(MODEL_INPUT_NAME "im_shape image scale_factor" CACHE STRING "Input layer name for tensorrt deploy.")
-set(MODEL_OUTPUT_NAMES "dets num_dets" CACHE STRING "Output layer names for tensorrt deploy, seperated with comma or colon")
-set(DEPLOY_MODEL "../models/helmet_model.engine" CACHE STRING "Used deploy AI model file (/path/to/*.engine)")
+set(MODEL_OUTPUT_NAMES "multiclass_nms3_0.tmp_0 multiclass_nms3_0.tmp_2" CACHE STRING "Output layer names for tensorrt deploy, seperated with comma or colon")
+set(DEPLOY_MODEL "../models/helmet_yolov3.engine" CACHE STRING "Used deploy AI model file (/path/to/*.engine)")
 
 # generate config.h in src folder.
 configure_file(
@@ -24,6 +24,10 @@ configure_file(
 
 set(DEPLOY_LIB_NAME "helmet_detection")
 set(DEPLOY_MAIN_NAME "helmet_detection_main")
+
+set(CMAKE_INSTALL_RPATH "\$ORIGIN")
+set(CMAKE_INSTALL_PREFIX "install")
+add_link_options("-Wl,--as-needed")
 
 
 
