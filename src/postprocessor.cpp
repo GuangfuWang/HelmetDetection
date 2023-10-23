@@ -1,7 +1,9 @@
 #include <opencv2/imgproc.hpp>
+#include <opencv2/freetype.hpp>
 #include "postprocessor.h"
 #include "config.h"
 #include <cmath>
+
 namespace helmet
 {
 
@@ -52,13 +54,17 @@ void HelmetDetectionPost::Run(const SharedRef<TrtResults> &res, cv::Mat &img,int
 						  b[k].x_max, b[k].y_max,
 						  box_color, m_config->BOX_LINE_WIDTH);
 			std::stringstream text;
-			text << m_config->POST_TEXT[b[k].class_id] << ": " << 100 * b[k].score << "%";
-
-			cv::putText(img, text.str(),
-						cv::Point(b[k].x_min, b[k].y_min-m_config->TEXT_FONT_SIZE-10),
-						cv::FONT_HERSHEY_PLAIN, m_config->TEXT_FONT_SIZE,
-						cv::Scalar(text_color[0], text_color[1], text_color[2]),
-						(int)m_config->TEXT_LINE_WIDTH);
+			float percent = 100 * b[k].score;
+//			text << m_config->POST_TEXT[b[k].class_id] << ": " << std::fixed<<std::setprecision(3)<<percent << "%";
+			const int line_type = 8;
+			m_font->putText(img,m_config->POST_TEXT[b[k].class_id],cv::Point(b[k].x_min, b[k].y_min-m_config->TEXT_FONT_SIZE-10),
+							m_config->TEXT_FONT_SIZE,cv::Scalar(text_color[0], text_color[1], text_color[2]),
+							(int)m_config->TEXT_LINE_WIDTH,line_type,false);
+//			m_font->putText(img, text.str(),
+//						cv::Point(b[k].x_min, b[k].y_min-m_config->TEXT_FONT_SIZE-10),
+//						cv::FONT_HERSHEY_PLAIN, m_config->TEXT_FONT_SIZE,
+//						cv::Scalar(text_color[0], text_color[1], text_color[2]),
+//						(int)m_config->TEXT_LINE_WIDTH);
 			if(b[k].class_id==m_config->TARGET_CLASS)alarm = 1;
 		}
 

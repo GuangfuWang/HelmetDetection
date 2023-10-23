@@ -2,6 +2,7 @@
 
 #include <opencv2/core/mat.hpp>
 #include <vector>
+#include <opencv2/freetype.hpp>
 #include "trt_deployresult.h"
 #include "util.h"
 
@@ -22,7 +23,13 @@ typedef struct {
 class PostprocessorOps
 {
 public:
-	explicit PostprocessorOps(SharedRef<Config>& config){m_config = config;}
+	explicit PostprocessorOps(SharedRef<Config>& config){
+		m_config = config;
+		m_font = cv::freetype::createFreeType2();
+		if(!Util::checkFileExist(config->POST_TEXT_FONT_FILE))
+			std::cerr<<"Font file not found!"<<std::endl;
+		else m_font->loadFontData(config->POST_TEXT_FONT_FILE,0);
+	}
 	/**
 	 * @brief virtual de-constructor for avoiding memory leaking.
 	 */
@@ -47,6 +54,7 @@ public:
 
 protected:
 	SharedRef<Config> m_config = nullptr;
+	cv::Ptr<cv::freetype::FreeType2> m_font = nullptr;
 };
 
 /**

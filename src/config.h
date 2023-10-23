@@ -62,7 +62,8 @@ public:
 	int TEXT_OFF_X = 450;
 	int TEXT_OFF_Y = 50;
 	std::string POSTPROCESS_NAME = "HelmetDetectionPost";
-	std::vector<std::string> POST_TEXT = {"Head", "Helmet"};
+	std::vector<std::string> POST_TEXT = {"未佩戴安全帽", "佩戴安全帽"};
+	std::string POST_TEXT_FONT_FILE = "";
 	bool init = false;
 };
 }

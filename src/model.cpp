@@ -8,6 +8,7 @@ namespace helmet{
 class InferModel {
 public:
 	explicit InferModel(int gpuID, SharedRef<Config>& config) {
+		m_config = config;
 		mDeploy = createSharedRef<TrtDeploy>(config,gpuID);
 		mResult = createSharedRef<TrtResults>(config);
 	}
@@ -15,6 +16,7 @@ public:
 public:
 	SharedRef<TrtDeploy> mDeploy;
 	SharedRef<TrtResults> mResult;
+	SharedRef<Config> m_config;
 };
 
 static void *GenModel(int gpuID,SharedRef<Config> config) {
@@ -54,8 +56,23 @@ void UpdateParams_Algorithm(cvModel *pModel) {
 
 void Process_Algorithm(cvModel *pModel, cv::Mat &input_frame) {
 	auto model = reinterpret_cast<InferModel *>(pModel->iModel);
+	auto roi = pModel->p;
+
+	auto config = model->m_config;
 	model->mDeploy->Infer(input_frame, model->mResult);
 	model->mDeploy->Postprocessing(model->mResult, input_frame,pModel->alarm);
+	cv::line(input_frame, cv::Point(roi[0].x, roi[0].y),
+			 cv::Point(roi[1].x, roi[1].y), cv::Scalar(255, 0, 0),
+			 config->BOX_LINE_WIDTH);
+	cv::line(input_frame, cv::Point(roi[1].x, roi[1].y),
+			 cv::Point(roi[2].x, roi[2].y), cv::Scalar(255, 0, 0),
+			 config->BOX_LINE_WIDTH);
+	cv::line(input_frame, cv::Point(roi[2].x, roi[2].y),
+			 cv::Point(roi[3].x, roi[3].y), cv::Scalar(255, 0, 0),
+			 config->BOX_LINE_WIDTH);
+	cv::line(input_frame, cv::Point(roi[0].x, roi[0].y),
+			 cv::Point(roi[3].x, roi[3].y), cv::Scalar(255, 0, 0),
+			 config->BOX_LINE_WIDTH);
 }
 
 void Destroy_Algorithm(cvModel *pModel) {

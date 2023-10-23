@@ -191,7 +191,7 @@ void Config::LoadConfigFile(int argc, char **argv, const std::string &file)
 
 			std::cout << "Read from YAML with text color: [\t";
 			for (auto &each : TEXT_COLOR)
-				std::cout << each << "\t";
+				std::cout << (int)each << "\t";
 			std::cout <<"]"<< std::endl;
 		}
 		if (model_node["BOX_COLOR"].IsDefined()) {
@@ -200,7 +200,7 @@ void Config::LoadConfigFile(int argc, char **argv, const std::string &file)
 
 			std::cout << "Read from YAML with box colors: [\t";
 			for (auto &each : BOX_COLOR)
-				std::cout << each << "\t";
+				std::cout << (int)each << "\t";
 			std::cout <<"]"<< std::endl;
 		}
 		if (model_node["ALARM_TEXT_COLOR"].IsDefined()) {
@@ -209,7 +209,7 @@ void Config::LoadConfigFile(int argc, char **argv, const std::string &file)
 
 			std::cout << "Read from YAML with alarm text: [\t";
 			for (auto &each : ALARM_TEXT_COLOR)
-				std::cout << each << "\t";
+				std::cout << (int)each << "\t";
 			std::cout <<"]"<< std::endl;
 		}
 		if (model_node["ALARM_BOX_COLOR"].IsDefined()) {
@@ -218,7 +218,7 @@ void Config::LoadConfigFile(int argc, char **argv, const std::string &file)
 
 			std::cout << "Read from YAML with alarm box color: [\t";
 			for (auto &each : ALARM_BOX_COLOR)
-				std::cout << each << "\t";
+				std::cout << (int)each << "\t";
 			std::cout <<"]"<< std::endl;
 		}
 		if (model_node["TEXT_LINE_WIDTH"].IsDefined()) {
@@ -255,6 +255,10 @@ void Config::LoadConfigFile(int argc, char **argv, const std::string &file)
 			for (auto &each : POST_TEXT)
 				std::cout << each << "\t";
 			std::cout <<"]"<< std::endl;
+		}
+		if (model_node["POST_TEXT_FONT_FILE"].IsDefined()) {
+			POST_TEXT_FONT_FILE = model_node["POST_TEXT_FONT_FILE"].as<std::string>();
+			std::cout << "Read from YAML with post text fonts: "<<POST_TEXT_FONT_FILE<<std::endl;
 		}
 	}
 	else {
