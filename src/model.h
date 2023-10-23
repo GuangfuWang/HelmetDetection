@@ -3,7 +3,7 @@
 
 namespace helmet
 {
-const int SIZE = 16;
+const int SIZE = 100;
 
 typedef enum
 {
@@ -36,8 +36,8 @@ typedef struct
 typedef struct
 {
 	cv_Point p[SIZE]; //用于画出ROI的点，请顺时针给出，目前支持四边形
-	int pointNum;	// 多边形点的个数
-	int regionNum;  // 多边形个数
+	std::vector<int> pointNum;	// 每个多边形的点数，例如两个框：{4,5}包含一个四边形与一个五边形；此时p中9个顶点，且对应。
+	int regionNum;  // not used
 
 	float lowtime;
 	float hightime;
