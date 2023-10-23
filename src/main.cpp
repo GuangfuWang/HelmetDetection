@@ -13,9 +13,9 @@ using namespace helmet;
  */
 
 int main(int argc, char **argv) {
-    Config::LoadConfigFile(argc, argv, "../config/helmet_detection.yaml");
+
     //prepare the input data.
-    auto in_path = std::filesystem::path(Config::VIDEO_FILE);
+    auto in_path = std::filesystem::path("/home/wgf/Downloads/datasets/Anquanmao/helmet-live/09-38.mp4");
     cv::VideoCapture cap(in_path);
     cv::VideoWriter vw;
     std::filesystem::path output_path = in_path.parent_path() / (in_path.stem().string() + ".result.mp4");

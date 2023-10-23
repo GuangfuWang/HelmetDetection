@@ -38,7 +38,7 @@ public:
 	 * @brief constructor for deploy class.
 	 * @details this construction will not init all materials.
 	 */
-	TrtDeploy(int gpuID = 0);
+	TrtDeploy(SharedRef<Config>& config,int gpuID = 0);
 
 	/**
 	 * @brief virtual de-constructor to avoid memory leaking.
@@ -132,6 +132,7 @@ protected:
 
 	ModelLoadStatus m_model_load_status; ///< model loading status.
 	CudaMemAllocStatus m_cuda_alloc_status; ///< allocation of memory for cuda.
+	SharedRef<Config> m_config;
 
 	float m_curr_fps; ///< Frame per Second.
 };

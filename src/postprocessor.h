@@ -22,6 +22,7 @@ typedef struct {
 class PostprocessorOps
 {
 public:
+	explicit PostprocessorOps(SharedRef<Config>& config){m_config = config;}
 	/**
 	 * @brief virtual de-constructor for avoiding memory leaking.
 	 */
@@ -43,6 +44,9 @@ public:
 	 * @param out_img output images.
 	 */
 	virtual void Run(const SharedRef<TrtResults> &res, cv::Mat &img,int &alarm) = 0;
+
+protected:
+	SharedRef<Config> m_config = nullptr;
 };
 
 /**
@@ -53,6 +57,7 @@ public:
 class HelmetDetectionPost final: public PostprocessorOps
 {
 public:
+	explicit HelmetDetectionPost(SharedRef<Config>& config): PostprocessorOps(config){};
 	void Run(const SharedRef<TrtResults> &res, cv::Mat &img,int &alarm) override;
 private:
     std::vector<float> m_moving_average;///< moving average.
@@ -65,6 +70,7 @@ private:
 class Postprocessor final
 {
 public:
+	explicit Postprocessor(SharedRef<Config>& config){m_config = config;}
 	/**
  	* @brief de-constructor.
  	*/
@@ -83,8 +89,9 @@ public:
 	void Init();
 
 private:
-	SharedRef<Factory<PostprocessorOps>> m_ops = nullptr;///< auto deconstructed, lazy purpose.
+//	SharedRef<Factory<PostprocessorOps>> m_ops = nullptr;///< auto deconstructed, lazy purpose.
 	PostprocessorOps* m_worker = nullptr;///< real worker.
-	static thread_local bool INIT_FLAG; ///< initialization flag.
+	bool INIT_FLAG = false; ///< initialization flag.
+	SharedRef<Config> m_config = nullptr;
 };
 }

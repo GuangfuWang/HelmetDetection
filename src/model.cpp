@@ -7,9 +7,9 @@ namespace helmet{
 
 class InferModel {
 public:
-	explicit InferModel(int gpuID) {
-		mDeploy = createSharedRef<TrtDeploy>(gpuID);
-		mResult = createSharedRef<TrtResults>();
+	explicit InferModel(int gpuID, SharedRef<Config>& config) {
+		mDeploy = createSharedRef<TrtDeploy>(config,gpuID);
+		mResult = createSharedRef<TrtResults>(config);
 	}
 
 public:
@@ -17,8 +17,8 @@ public:
 	SharedRef<TrtResults> mResult;
 };
 
-static void *GenModel(int gpuID) {
-	auto *model = new InferModel(gpuID);
+static void *GenModel(int gpuID,SharedRef<Config> config) {
+	auto *model = new InferModel(gpuID,config);
 	return reinterpret_cast<void *>(model);
 }
 
@@ -31,16 +31,16 @@ cvModel *Allocate_Algorithm(cv::Mat &input_frame, int algID, int gpuID) {
 	}else{
 		std::cout<<"Cannot find YAML file!"<<std::endl;
 	}
-	Config::LoadConfigFile(0, nullptr, file);
+	auto config = createSharedRef<Config>(0, nullptr, file);
+	config->INPUT_SHAPE[config->INPUT_SHAPE.size()-1] = input_frame.cols;
+	config->INPUT_SHAPE[config->INPUT_SHAPE.size()-2] = input_frame.rows;
 	auto *ptr = new cvModel();
 	ptr->FrameNum = 0;
 	ptr->Frameinterval = 0;
 	ptr->countNum = 0;
 	ptr->width = input_frame.cols;
 	ptr->height = input_frame.rows;
-	ptr->iModel = GenModel(gpuID);
-	Config::INPUT_SHAPE[Config::INPUT_SHAPE.size()-1] = input_frame.cols;
-	Config::INPUT_SHAPE[Config::INPUT_SHAPE.size()-2] = input_frame.rows;
+	ptr->iModel = GenModel(gpuID,config);
 	return ptr;
 }
 

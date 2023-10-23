@@ -3,6 +3,7 @@
 #include <yaml-cpp/yaml.h>
 #include <opencv2/opencv.hpp>
 #include "util.h"
+#include "config.h"
 
 namespace helmet {
     /**
@@ -14,7 +15,10 @@ namespace helmet {
 		/**
 		 * @brief de-constructor.
 		 */
-        virtual ~PreprocessOp() = default;
+		explicit PreprocessOp(SharedRef<Config> &config){
+			m_config = config;
+		}
+		virtual ~PreprocessOp() = default;
 		/**
 		 * @brief the interface function, invoking from PreprocessorFactory class.
 		 * @param data data from gpu side.
@@ -24,6 +28,7 @@ namespace helmet {
 
     protected:
         SharedRef<cv::cuda::Stream> m_stream = createSharedRef<cv::cuda::Stream>();///< for parallel purpose.
+        SharedRef<Config> m_config = nullptr;
     };
 
 	/**
@@ -32,6 +37,8 @@ namespace helmet {
 	 */
     class NormalizeImage final : public PreprocessOp {
     public:
+		explicit NormalizeImage(SharedRef<Config>& config): PreprocessOp(config){
+		};
 		/**
 		 * @brief implementation function.
 		 * @param data image data, from a vector->data().
@@ -45,6 +52,8 @@ namespace helmet {
 	 */
     class Permute final : public PreprocessOp {
     public:
+		explicit Permute(SharedRef<Config>& config): PreprocessOp(config){
+		};
 		/**
 		 * @brief do nothing function, see
 		 * @param data input image.
@@ -57,6 +66,8 @@ namespace helmet {
 	 */
     class Resize final : public PreprocessOp {
     public:
+		explicit Resize(SharedRef<Config>& config): PreprocessOp(config){
+		};
 		/**
 		 * @brief resize image according to CONFIG.
 		 * @param data raw images
@@ -65,7 +76,7 @@ namespace helmet {
         void Run(std::vector<cv::cuda::GpuMat> &data) override;
 
     private:
-        static std::pair<float, float> GenerateScale(const cv::cuda::GpuMat &im);///<Compute best resize scale for x-dimension, y-dimension
+        std::pair<float, float> GenerateScale(const cv::cuda::GpuMat &im);///<Compute best resize scale for x-dimension, y-dimension
     };
 
 	/**
@@ -73,6 +84,8 @@ namespace helmet {
 	 */
     class LetterBoxResize final : public PreprocessOp {
     public:
+		explicit LetterBoxResize(SharedRef<Config>& config): PreprocessOp(config){
+		};
 		/**
 		 * @brief used for detection box resizing, not applied currently.
 		 * @param data images.
@@ -82,7 +95,7 @@ namespace helmet {
 
     private:
 		/// utility function to obtain scale.
-        static float GenerateScale(const cv::cuda::GpuMat &im);
+        float GenerateScale(const cv::cuda::GpuMat &im);
     };
 
 	/**
@@ -91,6 +104,8 @@ namespace helmet {
 	 */
     class PadStride final : public PreprocessOp {
     public:
+		explicit PadStride(SharedRef<Config>& config): PreprocessOp(config){
+		};
 		/**
 		 * @brief padding for data.
 		 * @param data images.
@@ -105,6 +120,8 @@ namespace helmet {
 	 */
     class TopDownEvalAffine final : public PreprocessOp {
     public:
+		explicit TopDownEvalAffine(SharedRef<Config>& config): PreprocessOp(config){
+		};
 		/**
 		 * @brief implementation function.
 		 * @param data images.
