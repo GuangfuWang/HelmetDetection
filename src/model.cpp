@@ -20,12 +20,39 @@ public:
 	SharedRef<TrtDeploy> mDeploy;
 	SharedRef<TrtResults> mResult;
 	SharedRef<Config> m_config;
+	cv::Mat m_roi_img;
 };
 
 static void *GenModel(int gpuID, SharedRef<Config> config)
 {
 	auto *model = new InferModel(gpuID, config);
 	return reinterpret_cast<void *>(model);
+}
+
+static cv::Mat genROI(const cv::Size s, const std::vector<int> &points, cv_Point *coords)
+{
+	if (points.empty()){
+		return {s, CV_8UC3, cv::Scalar::all(255)};
+	}
+	cv::Mat roi_img = cv::Mat::zeros(s, CV_8UC3);
+	cv::Mat removed_roi;
+
+	std::vector<std::vector<cv::Point>> contour;
+
+	int sums = 0;
+	for (auto &each : points) {
+		std::vector<cv::Point> pts;
+		for (int j = sums; j < each + sums; ++j) {
+			pts.push_back(cv::Point(coords[j].x, coords[j].y));
+		}
+		sums += each;
+		contour.push_back(pts);
+	}
+	sums = 0;
+	for (auto &i : points) {
+		cv::drawContours(roi_img, contour, sums, cv::Scalar::all(255), -1);
+		sums++;
+	}
 }
 
 cvModel *Allocate_Algorithm(cv::Mat &input_frame, int algID, int gpuID)
@@ -59,54 +86,37 @@ void SetPara_Algorithm(cvModel *pModel, int algID)
 
 void UpdateParams_Algorithm(cvModel *pModel)
 {
-	//todo: implement this
+	auto model = reinterpret_cast<InferModel *>(pModel->iModel);
+	auto roi = pModel->p;
+	model->m_roi_img = genROI(cv::Size(pModel->width,pModel->height),
+							  pModel->pointNum, roi);
 }
 
 void Process_Algorithm(cvModel *pModel, cv::Mat &input_frame)
 {
 	auto model = reinterpret_cast<InferModel *>(pModel->iModel);
 	auto roi = pModel->p;
-//
-//	roi[0] = {50,50};
-//	roi[1]={input_frame.cols-50,50};
-//	roi[2] = {input_frame.cols-50,input_frame.rows-50};
-//	roi[3] = {50,input_frame.rows-50};
-//	pModel->pointNum = {4};
-
-	cv::Mat roi_img = cv::Mat::zeros(input_frame.size(),CV_8UC3);
+	if (model->m_roi_img.empty()) {
+		model->m_roi_img = genROI(input_frame.size(), pModel->pointNum, roi);
+	}
 	cv::Mat removed_roi;
+
 	auto config = model->m_config;
-	std::vector<std::vector<cv::Point>> contour;
 
-	int sums = 0;
-	for(auto& each:pModel->pointNum){
-		std::vector<cv::Point> pts;
-		for (int j = sums; j < each+sums; ++j) {
-			pts.push_back(cv::Point(roi[j].x, roi[j].y));
-		}
-		sums+=each;
-		contour.push_back(pts);
-	}
-	sums = 0;
-	for(auto& i:pModel->pointNum){
-		cv::drawContours(roi_img, contour, sums, cv::Scalar::all(255), -1);
-		sums++;
-	}
-
-	input_frame.copyTo(removed_roi, roi_img);
+	input_frame.copyTo(removed_roi, model->m_roi_img);
 	model->mDeploy->Infer(removed_roi, model->mResult);
 	model->mDeploy->Postprocessing(model->mResult, input_frame, pModel->alarm);
 
-	sums = 0;
-	for(auto& each:pModel->pointNum){
-		for (int j = sums; j < each+sums; ++j) {
-			int k = j+1;
-			if(k==each+sums)k=sums;
+	int sums = 0;
+	for (auto &each : pModel->pointNum) {
+		for (int j = sums; j < each + sums; ++j) {
+			int k = j + 1;
+			if (k == each + sums)k = sums;
 			cv::line(input_frame, cv::Point(roi[j].x, roi[j].y),
 					 cv::Point(roi[k].x, roi[k].y), cv::Scalar(255, 0, 0),
 					 config->BOX_LINE_WIDTH);
 		}
-		sums+=each;
+		sums += each;
 	}
 }
 
