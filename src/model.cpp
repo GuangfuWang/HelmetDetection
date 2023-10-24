@@ -66,6 +66,12 @@ void Process_Algorithm(cvModel *pModel, cv::Mat &input_frame)
 {
 	auto model = reinterpret_cast<InferModel *>(pModel->iModel);
 	auto roi = pModel->p;
+//
+//	roi[0] = {50,50};
+//	roi[1]={input_frame.cols-50,50};
+//	roi[2] = {input_frame.cols-50,input_frame.rows-50};
+//	roi[3] = {50,input_frame.rows-50};
+//	pModel->pointNum = {4};
 
 	cv::Mat roi_img = cv::Mat::zeros(input_frame.size(),CV_8UC3);
 	cv::Mat removed_roi;
@@ -81,8 +87,12 @@ void Process_Algorithm(cvModel *pModel, cv::Mat &input_frame)
 		sums+=each;
 		contour.push_back(pts);
 	}
+	sums = 0;
+	for(auto& i:pModel->pointNum){
+		cv::drawContours(roi_img, contour, sums, cv::Scalar::all(255), -1);
+		sums++;
+	}
 
-	cv::drawContours(roi_img, contour, 0, cv::Scalar::all(255), -1);
 	input_frame.copyTo(removed_roi, roi_img);
 	model->mDeploy->Infer(removed_roi, model->mResult);
 	model->mDeploy->Postprocessing(model->mResult, input_frame, pModel->alarm);
@@ -90,7 +100,8 @@ void Process_Algorithm(cvModel *pModel, cv::Mat &input_frame)
 	sums = 0;
 	for(auto& each:pModel->pointNum){
 		for (int j = sums; j < each+sums; ++j) {
-			int k = (j+1)%each;
+			int k = j+1;
+			if(k==each+sums)k=sums;
 			cv::line(input_frame, cv::Point(roi[j].x, roi[j].y),
 					 cv::Point(roi[k].x, roi[k].y), cv::Scalar(255, 0, 0),
 					 config->BOX_LINE_WIDTH);
