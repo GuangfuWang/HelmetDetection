@@ -35,7 +35,6 @@ static cv::Mat genROI(const cv::Size s, const std::vector<int> &points, cv_Point
 		return {s, CV_8UC3, cv::Scalar::all(255)};
 	}
 	cv::Mat roi_img = cv::Mat::zeros(s, CV_8UC3);
-	cv::Mat removed_roi;
 
 	std::vector<std::vector<cv::Point>> contour;
 
@@ -53,6 +52,7 @@ static cv::Mat genROI(const cv::Size s, const std::vector<int> &points, cv_Point
 		cv::drawContours(roi_img, contour, sums, cv::Scalar::all(255), -1);
 		sums++;
 	}
+	return roi_img;
 }
 
 cvModel *Allocate_Algorithm(cv::Mat &input_frame, int algID, int gpuID)
