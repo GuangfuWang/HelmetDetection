@@ -34,6 +34,7 @@ void HelmetDetectionPost::Run(const SharedRef<TrtResults> &res, cv::Mat &img,int
 		curr.push_back(b);
 	}
 	auto b = curr;
+	bool ff = false;
 	///@note the putText method does not have GPU version since it quite slow running on GPU for per pixel ops.
 	for (int k = 0; k < b.size(); ++k) {
 		if(b[k].class_id>1)continue;
@@ -65,10 +66,20 @@ void HelmetDetectionPost::Run(const SharedRef<TrtResults> &res, cv::Mat &img,int
 //						cv::FONT_HERSHEY_PLAIN, m_config->TEXT_FONT_SIZE,
 //						cv::Scalar(text_color[0], text_color[1], text_color[2]),
 //						(int)m_config->TEXT_LINE_WIDTH);
-			if(b[k].class_id==m_config->TARGET_CLASS)alarm = 1;
+			if(b[k].class_id==m_config->TARGET_CLASS){
+				m_latency+=2;
+				if(m_latency>2*m_config->ALARM_COUNT){
+					alarm = 1;
+					m_latency = 0;
+				}
+				ff = true;
+			}
 		}
-
 	}
+	if(!ff){
+		m_latency--;
+	}
+	if(m_latency<0)m_latency=0;
 }
 
 void Postprocessor::Init()

@@ -1,5 +1,5 @@
 MODEL:
-  MODEL_NAME: "../models/helmet_yolov3.engine"
+  MODEL_NAME: "/home/wgf/Downloads/models/helmet/helmet_total_train.engine"
   BACKBONE: "ResNet50"
   INPUT_NAME: ["im_shape","image", "scale_factor"]
   OUTPUT_NAMES: [ "multiclass_nms3_0.tmp_0","multiclass_nms3_0.tmp_2"]
@@ -39,6 +39,7 @@ POSTPROCESS:
   TEXT_FONT_SIZE: 25 # should be in float
   TEXT_OFF_X: 450 # If negative, we place the x offset to middle of image.
   TEXT_OFF_Y: 50
+  ALARM_COUNT: 5 # accumulated alarm count.
   POSTPROCESS_NAME: "HelmetDetectionPost"
   POST_TEXT: ["未佩戴安全帽","佩戴安全帽"] #output string literal.
   POST_TEXT_FONT_FILE: "../SIMSUN.ttf"

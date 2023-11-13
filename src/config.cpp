@@ -244,6 +244,10 @@ void Config::LoadConfigFile(int argc, char **argv, const std::string &file)
 			TEXT_OFF_Y = model_node["TEXT_OFF_Y"].as<int>();
 			std::cout << "Read from YAML with text pos offset y: " << TEXT_OFF_Y << std::endl;
 		}
+		if (model_node["ALARM_COUNT"].IsDefined()) {
+			ALARM_COUNT = model_node["ALARM_COUNT"].as<int>();
+			std::cout << "Read from YAML with ALARM_COUNT: " << ALARM_COUNT << std::endl;
+		}
 		if (model_node["POSTPROCESS_NAME"].IsDefined()) {
 			POSTPROCESS_NAME = model_node["POSTPROCESS_NAME"].as<std::string>();
 			std::cout << "Read from YAML with post process name: " << POSTPROCESS_NAME << std::endl;
