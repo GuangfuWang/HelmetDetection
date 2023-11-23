@@ -46,6 +46,7 @@ struct ImageBlob
  *	}
  * @endcode
  */
+// inline SharedRef<cv::cuda::Stream> m_cv_stream = nullptr;
 class PreprocessorFactory
 {
 public:
@@ -57,7 +58,7 @@ public:
 	 * @brief constructor.
 	 * @details init the m_ops/m_stream, and register all worker subclass.
 	 */
-	explicit PreprocessorFactory(SharedRef<Config>& config);
+	explicit PreprocessorFactory(SharedRef<Config>& config,SharedRef<cv::cuda::Stream>& stream);
 	/**
 	 * @brief destroy the factory map.
 	 */
@@ -87,7 +88,11 @@ private:
 //	SharedRef<Factory<PreprocessOp>> m_ops = nullptr;///< worker smart pointer.
 	std::unordered_map<std::string,PreprocessOp*> m_workers;
 	SharedRef<cv::cuda::Stream> m_stream = nullptr;///< parallel support.
+	cudaStream_t m_cuda_stream = nullptr;
 	SharedRef<Config> m_config = nullptr;
+    std::vector<cv::cuda::GpuMat> m_gpu_data;
+	std::vector<void*> m_input_paged_mat;
+	std::vector<cv::Mat> m_input;
 };
 
 /**
@@ -106,7 +111,7 @@ public:
 	 * @param input raw image data.
 	 * @param output output preprocessed data.
 	 */
-	void Run(const std::vector<cv::Mat> &input, SharedRef<ImageBlob> &output);
+	void Run(const std::vector<cv::Mat> &input, SharedRef<ImageBlob> &output,SharedRef<cv::cuda::Stream>& stream);
 
 private:
 	SharedRef<PreprocessorFactory> m_preprocess_factory = nullptr;///< worker factory.

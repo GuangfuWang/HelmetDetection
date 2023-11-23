@@ -1,3 +1,4 @@
+#include <thread>
 #include "preprocess_util.hpp"
 #include "preprocessor.h"
 
@@ -12,19 +13,20 @@ void PreprocessorFactory::Init()
 	INIT_FLAG = true;
 }
 
-PreprocessorFactory::PreprocessorFactory(SharedRef<Config>& config)
+PreprocessorFactory::PreprocessorFactory(SharedRef<Config> &config, SharedRef<cv::cuda::Stream> &stream)
 {
 	m_config = config;
 
-	m_workers["TopDownEvalAffine"] = new TopDownEvalAffine(config);
-	m_workers["Resize"] = new Resize(config);
-	m_workers["LetterBoxResize"] = new LetterBoxResize(config);
-	m_workers["NormalizeImage"] = new NormalizeImage(config);
-	m_workers["PadStride"] = new PadStride(config);
-	m_workers["Permute"] = new Permute(config);
+	m_workers["TopDownEvalAffine"] = new TopDownEvalAffine(config, stream);
+	m_workers["Resize"] = new Resize(config, stream);
+	m_workers["LetterBoxResize"] = new LetterBoxResize(config, stream);
+	m_workers["NormalizeImage"] = new NormalizeImage(config, stream);
+	m_workers["PadStride"] = new PadStride(config, stream);
+	m_workers["Permute"] = new Permute(config, stream);
 
 	if (!m_stream) {
-		m_stream = createSharedRef<cv::cuda::Stream>();
+		m_stream = stream;
+		m_cuda_stream = static_cast<cudaStream_t>(m_stream->cudaPtr());
 	}
 }
 
@@ -35,13 +37,9 @@ void PreprocessorFactory::CvtForGpuMat(const std::vector<cv::Mat> &input,
 	num = (int)input.size();
 	for (int i = 0; i < num; ++i) {
 		frames[i].upload(input[i], *m_stream);
-	}
-	m_stream->waitForCompletion();
-	for (int i = 0; i < num; ++i) {
 		frames[i].convertTo(frames[i], cv::COLOR_BGR2RGB, *m_stream);
-        frames[i].convertTo(frames[i],CV_32FC3,1.0,0.0,*m_stream);
+		frames[i].convertTo(frames[i], CV_32FC3, 1.0, 0.0, *m_stream);
 	}
-	m_stream->waitForCompletion();
 }
 
 void PreprocessorFactory::Run(const std::vector<cv::Mat> &input, SharedRef<ImageBlob> &output)
@@ -59,39 +57,50 @@ void PreprocessorFactory::Run(const std::vector<cv::Mat> &input, SharedRef<Image
 			SCALE_H = (float)m_config->TARGET_SIZE[0] / (float)input[0].rows;
 			std::cout << "Input shape height in config file is not same as data height..." << std::endl;
 		}
+		m_gpu_data.resize(input.size());
+		auto ss = input[0].total() * input[0].elemSize();
+		for (auto &i : m_gpu_data) {
+			void *ptr = nullptr;
+			cudaMalloc(&ptr, ss);
+			i = cv::cuda::GpuMat(input[0].rows, input[0].cols, input[0].type(), ptr);
+		}
+		m_input_paged_mat.resize(input.size());
+		m_input.resize(input.size());
+		for (int i = 0; i < input.size(); i++) {
+			cudaMallocHost(&m_input_paged_mat[i], ss);
+			m_input[i] = cv::Mat(cv::Size(input[0].cols, input[0].rows),
+								 input[0].type(), m_input_paged_mat[i]);
+
+		}
+
 	}
-	std::vector<cv::cuda::GpuMat> gpu(input.size());
+	for (int i = 0; i < input.size(); i++) {
+		memcpy(m_input_paged_mat[i], input[i].data, input[i].total() * input[i].elemSize());
+	}
 	int num = 0;
-	CvtForGpuMat(input, gpu, num);
+	CvtForGpuMat(m_input, m_gpu_data, num);
+
 	for (const auto &i : m_config->PIPELINE_TYPE) {
-		m_workers[i]->Run(gpu);
+		m_workers[i]->Run(m_gpu_data);
 	}
 
-    if (output->im_shape_.empty()) {
-        output->im_shape_ = m_config->INPUT_SHAPE;
-    }
-    if (output->in_net_shape_.empty()) {
-        output->in_net_shape_ = output->im_shape_;
-        output->in_net_shape_[output->im_shape_.size() - 1] = m_config->TARGET_SIZE[1];
-        output->in_net_shape_[output->im_shape_.size() - 2] = m_config->TARGET_SIZE[0];
-    }
-    if (output->scale_factor_.empty()) {
-        output->scale_factor_.resize(2);
-        output->scale_factor_[0] = SCALE_H;
-        output->scale_factor_[1] = SCALE_W;
-    }
-    output->m_gpu_data = gpu;
+	output->m_gpu_data = this->m_gpu_data;
 }
 
 PreprocessorFactory::~PreprocessorFactory()
 {
-	for(auto& [name,item]:m_workers){
+	for (auto &[name, item] : m_workers) {
 		delete item;
 		item = nullptr;
 	}
+	for(auto &i:m_input_paged_mat){
+		cudaFreeHost(i);
+	}
 }
 
-void Preprocessor::Run(const std::vector<cv::Mat> &input, SharedRef<ImageBlob> &output)
+void Preprocessor::Run(const std::vector<cv::Mat> &input,
+					   SharedRef<ImageBlob> &output,
+					   SharedRef<cv::cuda::Stream> &stream)
 {
 	if (cv::cuda::getCudaEnabledDeviceCount() == 0) {
 		std::cerr << "Your OpenCV does not support CUDA!" << std::endl;
@@ -100,9 +109,11 @@ void Preprocessor::Run(const std::vector<cv::Mat> &input, SharedRef<ImageBlob> &
 				  << std::endl;
 	}
 	if (!m_preprocess_factory) {
-		m_preprocess_factory = createSharedRef<PreprocessorFactory>(m_config);
+		m_preprocess_factory = createSharedRef<PreprocessorFactory>(m_config, stream);
 	}
+
 	m_preprocess_factory->Run(input, output);
+
 }
 
 

@@ -12,4 +12,5 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 find_package(YAML-CPP REQUIRED)
 
 
+
 set(DEP_LIBS ${OpenCV_LIBS} yaml-cpp cudart nvinfer nvinfer_plugin)

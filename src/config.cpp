@@ -1,3 +1,4 @@
+#include <fstream>
 #include "config.h"
 #include "macro.h"
 #include "util.h"
@@ -14,18 +15,26 @@ void Config::LoadConfigFile(int argc, char **argv, const std::string &file)
 	std::cout << "Start parsing the config file for Helmet Detection" << std::endl;
 	MODEL_NAME = DEPLOY_MODEL;
 	std::cout << "Read from cmake config with model name: " << DEPLOY_MODEL << std::endl;
-	INPUT_NAME = Util::parseNames(MODEL_INPUT_NAME, ' ');
+	INPUT_NAME = parseNames(MODEL_INPUT_NAME, ' ');
 	std::cout << "Read from cmake config with inputs: [" << MODEL_INPUT_NAME <<"]"<< std::endl;
 	OUTPUT_NAMES.clear();
-	OUTPUT_NAMES = Util::parseNames(MODEL_OUTPUT_NAMES, ' ');
+	OUTPUT_NAMES = parseNames(MODEL_OUTPUT_NAMES, ' ');
 	std::cout << "Read from cmake config with outputs: [" << MODEL_OUTPUT_NAMES <<"]"<< std::endl;
 
-	if (!Util::checkFileExist(file)) {
+	if (!checkFileExist(file)) {
 		std::cerr << "Config file non exists! Aborting..." << std::endl;
 	}
 
 	YAML::Node config;
-	config = YAML::LoadFile(file);
+//	config = YAML::LoadFile(file);
+	std::ifstream ai_model(file, std::ios::in);
+	if (!ai_model) {
+		return;
+	}
+	std::stringstream m_str;
+	m_str << ai_model.rdbuf();
+	ai_model.close();
+	config = YAML::Load(m_str.str());
 
 	if (config["MODEL"].IsDefined()) {
 		auto model_node = config["MODEL"];
@@ -268,6 +277,7 @@ void Config::LoadConfigFile(int argc, char **argv, const std::string &file)
 	else {
 		std::cerr << "Please set MODEL, " << std::endl;
 	}
+
 	if (argc < 2)return;
 
 	cmdline::parser parser;
@@ -283,7 +293,7 @@ void Config::LoadConfigFile(int argc, char **argv, const std::string &file)
 	std::string VideoFile = parser.get<std::string>("video_file");
 
 	if (!InLayerName.empty()) {
-		INPUT_NAME = Util::parseNames(InLayerName, ' ');
+		INPUT_NAME = parseNames(InLayerName, ' ');
 
 		std::cout << "Read from cmd with inputs: [\t";
 		for (auto &each : INPUT_NAME) {
@@ -293,7 +303,7 @@ void Config::LoadConfigFile(int argc, char **argv, const std::string &file)
 	}
 	if (!OutLayerNames.empty()) {
 		OUTPUT_NAMES.clear();
-		OUTPUT_NAMES = Util::parseNames(OutLayerNames, ' ');
+		OUTPUT_NAMES = parseNames(OutLayerNames, ' ');
 
 		std::cout << "Read from cmd with outputs: [\t";
 		for (auto &each : OUTPUT_NAMES) {
@@ -306,7 +316,7 @@ void Config::LoadConfigFile(int argc, char **argv, const std::string &file)
 		std::cout<<"Read from cmd with model file: "<<MODEL_NAME<<std::endl;
 	}
 
-	if (!helmet::Util::checkFileExist(MODEL_NAME)) {
+	if (!helmet::checkFileExist(MODEL_NAME)) {
 		std::cout << MODEL_NAME << std::endl;
 		std::cerr << "Model does not exists!" << std::endl;
 		std::cerr << "Please check the model path..." << std::endl;

@@ -10,8 +10,8 @@ namespace helmet
 void HelmetDetectionPost::Run(const SharedRef<TrtResults> &res, cv::Mat &img,int &alarm)
 {
 	//our simple program will only draw letters on top of images.
-	auto flag = static_cast<PostProcessFlag>(m_config->POST_MODE);
-	assert(flag == PostProcessFlag::DRAW_BOX_LETTER);
+//	auto flag = static_cast<PostProcessFlag>(m_config->POST_MODE);
+//	assert(flag == PostProcessFlag::DRAW_BOX_LETTER);
 	alarm = 0;
 
 	std::vector<float> dets;
@@ -25,7 +25,7 @@ void HelmetDetectionPost::Run(const SharedRef<TrtResults> &res, cv::Mat &img,int
 	std::vector<Box> curr;
 	for (int j = 0; j < 100; ++j) {
 		Box b;
-		b.class_id = Util::round2int(dets[0+j*6]);
+		b.class_id = round2int(dets[0+j*6]);
 		b.score = dets[1+j*6];
 		b.x_min = (int)(dets[2+j*6] * scale_x);
 		b.y_min = (int)(dets[3+j*6] * scale_y);
@@ -51,7 +51,7 @@ void HelmetDetectionPost::Run(const SharedRef<TrtResults> &res, cv::Mat &img,int
 				box_color = m_config->BOX_COLOR;
 				text_color = m_config->TEXT_COLOR;
 			}
-			Util::plotBox(img, b[k].x_min, b[k].y_min,
+			plotBox(img, b[k].x_min, b[k].y_min,
 						  b[k].x_max, b[k].y_max,
 						  box_color, m_config->BOX_LINE_WIDTH);
 			std::stringstream text;

@@ -6,88 +6,91 @@
 #include <vector>
 #include <opencv2/opencv.hpp>
 
-namespace helmet
-{
+namespace helmet {
 /**
  * @brief this is used for lazy purpose.
  */
-template<typename T>
-using UniqueRef = std::unique_ptr<T>;
-template<typename T>
-using SharedRef = std::shared_ptr<T>;
+    template<typename T>
+    using UniqueRef = std::unique_ptr<T>;
+    template<typename T>
+    using SharedRef = std::shared_ptr<T>;
 
 ///@note here is cpp perfect forwarding.
-template<typename T, typename ... Args>
-constexpr SharedRef<T> createSharedRef(Args &&... args)
-{
-	return std::make_shared<T>(std::forward<Args>(args)...);
-}
+    template<typename T, typename ... Args>
+    constexpr SharedRef<T> createSharedRef(Args &&... args) {
+        return std::make_shared<T>(std::forward<Args>(args)...);
+    }
 
-template<typename T, typename ... Args>
-constexpr UniqueRef<T> createUniqueRef(Args &&... args)
-{
-	return std::make_unique<T>(std::forward<Args>(args)...);
-}
+    template<typename T, typename ... Args>
+    constexpr UniqueRef<T> createUniqueRef(Args &&... args) {
+        return std::make_unique<T>(std::forward<Args>(args)...);
+    }
 
 /**
  * @brief utility class for file operation and timing.
  * @note timing should only be used without jumping to another timing.
  * @warning this class requires C++ 17 standard.
  */
-class Util
-{
-public:
-	/**
-	 * @brief check a directory exists or not.
-	 * @param dir query directory.
-	 * @return true if specified directory exists, false if not.
-	 */
-	static bool checkDirExist(const std::string &dir);
-	/**
- 	* @brief check a file exists or not.
- 	* @param dir query file.
- 	* @return true if specified file exists, false if not.
- 	*/
-	static bool checkFileExist(const std::string &file);
-	/**
-	 * @brief timing starts.
-	 */
-	static void tic();
-	/**
-	 * @brief timing ends.
-	 * @return total time in ms since last tic().
-	 */
-	static long toc();
-	/**
-	 * @brief get a file size in byte without open it.
-	 * @param file query file name.
-	 * @return file size in byte.
-	 */
-	static long getFileSize(const std::string &file);
-	/**
-	 * @brief converting a string into integer.
-	 * @param arr string literal
-	 * @return integer.
-	 */
-	static int cvtStr2Int(const char *arr);
+    class Util {
+    public:
+        /**
+         * @brief check a directory exists or not.
+         * @param dir query directory.
+         * @return true if specified directory exists, false if not.
+         */
+//	static bool checkDirExist(const std::string &dir);
+        /**
+         * @brief check a file exists or not.
+         * @param dir query file.
+         * @return true if specified file exists, false if not.
+         */
+//	static bool checkFileExist(const std::string &file);
+        /**
+         * @brief timing starts.
+         */
+        static void tic();
 
-	/**
-	 * @brief calculate the softmax.
-	 * @param in
-	 */
-	static void softmax(std::vector<float>& in);
+        /**
+         * @brief timing ends.
+         * @return total time in ms since last tic().
+         */
+        static long toc();
+        /**
+         * @brief get a file size in byte without open it.
+         * @param file query file name.
+         * @return file size in byte.
+         */
+//	static long getFileSize(const std::string &file);
+        /**
+         * @brief converting a string into integer.
+         * @param arr string literal
+         * @return integer.
+         */
+        static int cvtStr2Int(const char *arr);
 
-	static std::vector<std::string> parseNames(const std::string &names, char delim);
+        /**
+         * @brief calculate the softmax.
+         * @param in
+         */
+        static void softmax(std::vector<float> &in);
 
-	static void plotBox(cv::Mat& img,int x0,int y0,int x1,int y1,
-						std::vector<unsigned char>color,int thickness);
+    private:
+        ///note this is thread local variable, enabling the util function can be used in multi-thread environments.
+        static thread_local std::chrono::high_resolution_clock::time_point mTic;///< timer start.
+    };
 
-	static int round2int(float num);
+    extern bool checkFileExist(const std::string &file);
 
-private:
-	///note this is thread local variable, enabling the util function can be used in multi-thread environments.
-	static thread_local std::chrono::high_resolution_clock::time_point mTic;///< timer start.
-};
+    extern bool checkDirExist(const std::string &dir);
+
+    extern long getFileSize(const std::string &file);
+
+    extern void plotBox(cv::Mat &img, int x0, int y0, int x1, int y1,
+                        std::vector<unsigned char> color, int thickness);
+
+    extern int round2int(float num);
+
+    extern std::vector<std::string> parseNames(const std::string &names, char delim);
 
 /**
  * @brief This is a factory class used as a design pattern.
@@ -109,66 +112,61 @@ private:
  * @tparam T Base class
  *
 */
-template<typename T>
-class Factory
-{
-public:
-	/**
-	 * @brief this is the register function used for register a target subclass.
-	 * @note the subclass must be a sub class of T.
-	 * @tparam TDerived derived class name.
-	 * @param name registered class name.
-	 */
-	template<typename TDerived>
-	void registerType(const std::string &name)
-	{
-		static_assert(std::is_base_of<T, TDerived>::value,
-					  "Factory::registerType doesn't accept this type because doesn't derive from base class");
-		_createFuncs[name] = &createFunc<TDerived>;
-	}
+    template<typename T>
+    class Factory {
+    public:
+        /**
+         * @brief this is the register function used for register a target subclass.
+         * @note the subclass must be a sub class of T.
+         * @tparam TDerived derived class name.
+         * @param name registered class name.
+         */
+        template<typename TDerived>
+        void registerType(const std::string &name) {
+            static_assert(std::is_base_of<T, TDerived>::value,
+                          "Factory::registerType doesn't accept this type because doesn't derive from base class");
+            _createFuncs[name] = &createFunc<TDerived>;
+        }
 
-	/**
-	 * @brief get a static object.
-	 * @param name index object by string.
-	 * @return pointer to base class.
-	 */
-	T *create(const std::string &name)
-	{
-		typename std::unordered_map<std::string, PCreateFunc>::const_iterator it = _createFuncs.find(name);
-		if (it != _createFuncs.end()) {
-			return it->second();
-		}
-		return nullptr;
-	}
+        /**
+         * @brief get a static object.
+         * @param name index object by string.
+         * @return pointer to base class.
+         */
+        T *create(const std::string &name) {
+            typename std::unordered_map<std::string, PCreateFunc>::const_iterator it = _createFuncs.find(name);
+            if (it != _createFuncs.end()) {
+                return it->second();
+            }
+            return nullptr;
+        }
 
-	/**
-	 * @brief destroy all static objects.
-	 */
-	void destroy()
-	{
-		for (auto &[name, ops] : _createFuncs) {
-			typename std::unordered_map<std::string, PCreateFunc>::const_iterator it = _createFuncs.find(name);
-			if (it != _createFuncs.end()) {
-				delete it->second();
-			}
-		}
-	}
+        /**
+         * @brief destroy all static objects.
+         */
+        void destroy() {
+            for (auto &[name, ops]: _createFuncs) {
+                typename std::unordered_map<std::string, PCreateFunc>::const_iterator it = _createFuncs.find(name);
+                if (it != _createFuncs.end()) {
+                    delete it->second();
+                }
+            }
+        }
 
-private:
-	/**
-	 * @brief actual creation of objects.
-	 * @tparam TDerived
-	 * @return
-	 */
-	template<typename TDerived>
-	static T *createFunc()
-	{
-		return new TDerived();
-	}
+    private:
+        /**
+         * @brief actual creation of objects.
+         * @tparam TDerived
+         * @return
+         */
+        template<typename TDerived>
+        static T *createFunc() {
+            return new TDerived();
+        }
 
-	typedef T *(*PCreateFunc)();///< function pointer, can be substitute by std::function.
+        typedef T *(*PCreateFunc)();///< function pointer, can be substitute by std::function.
 
-	std::unordered_map<std::string, PCreateFunc> _createFuncs;///< map stores all objects.
-};
+        std::unordered_map<std::string, PCreateFunc> _createFuncs;///< map stores all objects.
+    };
 
 }

@@ -11,8 +11,8 @@ void NormalizeImage::Run(std::vector<cv::cuda::GpuMat> &data)
 	NormalizeImageOnGpu(data.data(), *m_stream, data.size(),
 						m_mul, m_subtract);
 }
-NormalizeImage::NormalizeImage(SharedRef<Config> &config)
-	: PreprocessOp(config)
+NormalizeImage::NormalizeImage(SharedRef<Config> &config,SharedRef<cv::cuda::Stream>& stream)
+	: PreprocessOp(config,stream)
 {
 	m_config = config;
 	assert(m_config->N_STD[0]>0&&m_config->N_STD[1]>0&&m_config->N_STD[2]>0);

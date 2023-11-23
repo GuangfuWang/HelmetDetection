@@ -15,8 +15,9 @@ namespace helmet {
 		/**
 		 * @brief de-constructor.
 		 */
-		explicit PreprocessOp(SharedRef<Config> &config){
+		explicit PreprocessOp(SharedRef<Config> &config,SharedRef<cv::cuda::Stream>& stream){
 			m_config = config;
+            m_stream = stream;
 		}
 		virtual ~PreprocessOp() = default;
 		/**
@@ -27,7 +28,7 @@ namespace helmet {
         virtual void Run(std::vector<cv::cuda::GpuMat> &data) = 0;
 
     protected:
-        SharedRef<cv::cuda::Stream> m_stream = createSharedRef<cv::cuda::Stream>();///< for parallel purpose.
+        SharedRef<cv::cuda::Stream> m_stream = nullptr;///< for parallel purpose.
         SharedRef<Config> m_config = nullptr;
     };
 
@@ -37,7 +38,7 @@ namespace helmet {
 	 */
     class NormalizeImage final : public PreprocessOp {
     public:
-		explicit NormalizeImage(SharedRef<Config>& config);
+		explicit NormalizeImage(SharedRef<Config>& config,SharedRef<cv::cuda::Stream>& stream);
 		/**
 		 * @brief implementation function.
 		 * @param data image data, from a vector->data().
@@ -54,7 +55,7 @@ namespace helmet {
 	 */
     class Permute final : public PreprocessOp {
     public:
-		explicit Permute(SharedRef<Config>& config): PreprocessOp(config){
+		explicit Permute(SharedRef<Config>& config,SharedRef<cv::cuda::Stream>& stream): PreprocessOp(config,stream){
 		};
 		/**
 		 * @brief do nothing function, see
@@ -68,7 +69,7 @@ namespace helmet {
 	 */
     class Resize final : public PreprocessOp {
     public:
-		explicit Resize(SharedRef<Config>& config): PreprocessOp(config){
+		explicit Resize(SharedRef<Config>& config,SharedRef<cv::cuda::Stream>& stream): PreprocessOp(config,stream){
 		};
 		/**
 		 * @brief resize image according to CONFIG.
@@ -86,7 +87,7 @@ namespace helmet {
 	 */
     class LetterBoxResize final : public PreprocessOp {
     public:
-		explicit LetterBoxResize(SharedRef<Config>& config): PreprocessOp(config){
+		explicit LetterBoxResize(SharedRef<Config>& config,SharedRef<cv::cuda::Stream>& stream): PreprocessOp(config,stream){
 		};
 		/**
 		 * @brief used for detection box resizing, not applied currently.
@@ -106,7 +107,7 @@ namespace helmet {
 	 */
     class PadStride final : public PreprocessOp {
     public:
-		explicit PadStride(SharedRef<Config>& config): PreprocessOp(config){
+		explicit PadStride(SharedRef<Config>& config,SharedRef<cv::cuda::Stream>& stream): PreprocessOp(config,stream){
 		};
 		/**
 		 * @brief padding for data.
@@ -122,7 +123,7 @@ namespace helmet {
 	 */
     class TopDownEvalAffine final : public PreprocessOp {
     public:
-		explicit TopDownEvalAffine(SharedRef<Config>& config): PreprocessOp(config){
+		explicit TopDownEvalAffine(SharedRef<Config>& config,SharedRef<cv::cuda::Stream>& stream): PreprocessOp(config,stream){
 		};
 		/**
 		 * @brief implementation function.

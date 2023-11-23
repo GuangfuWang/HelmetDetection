@@ -26,7 +26,7 @@ public:
 	explicit PostprocessorOps(SharedRef<Config>& config){
 		m_config = config;
 		m_font = cv::freetype::createFreeType2();
-		if(!Util::checkFileExist(config->POST_TEXT_FONT_FILE))
+		if(!checkFileExist(config->POST_TEXT_FONT_FILE))
 			std::cerr<<"Font file not found!"<<std::endl;
 		else m_font->loadFontData(config->POST_TEXT_FONT_FILE,0);
 	}

@@ -43,7 +43,6 @@ inline void ResizeOnGpu(cv::cuda::GpuMat *raw, cv::cuda::GpuMat *resized, cv::cu
 		cv::cuda::resize(*(raw + i), *(resized + i), cv::Size(),
 						 scale_w, scale_h, FLAG, stream);
 	}
-	stream.waitForCompletion();
 }
 
 /**
@@ -68,7 +67,6 @@ inline void PadOnGpu(cv::cuda::GpuMat *raw, cv::cuda::GpuMat *padded, cv::cuda::
 		cv::cuda::copyMakeBorder(*(raw + i), *(padded + i), top, bottom, left, right,
 								 borderType, scalar, stream);
 	}
-	stream.waitForCompletion();
 }
 
 ///todo: potentially improved by block-wise and more stream involved.
@@ -86,7 +84,6 @@ inline void CvtColorOnGpu(cv::cuda::GpuMat *raw, cv::cuda::GpuMat *cvt, cv::cuda
 	for (int i = 0; i < num; ++i) {
 		cv::cuda::cvtColor(*(raw + i), *(cvt + i), code, 0, stream);
 	}
-	stream.waitForCompletion();
 }
 
 /**
@@ -104,7 +101,6 @@ inline void ExtractChannelOnGpu(const cv::cuda::GpuMat *raw,
 	for (int i = 0; i < num; ++i) {
 		cv::cuda::split(*(raw + i), cvt[i], stream);
 	}
-	stream.waitForCompletion();
 }
 
 /**
@@ -123,7 +119,6 @@ inline void ExtractChannelOnGpu(const cv::cuda::GpuMat *raw, std::vector<std::ve
 		cvt[i].resize(raw->channels());//3 channels;
 		cv::cuda::split(*(raw + i), cvt[i], stream);
 	}
-	stream.waitForCompletion();
 }
 
 /**
@@ -141,10 +136,8 @@ inline void NormalizeImageOnGpu(cv::cuda::GpuMat *raw, cv::cuda::Stream &stream,
 	for (int i = 0; i < num; ++i) {
 		cv::cuda::multiply(*(raw + i), scale_mat, *(raw + i), 1.0, -1, stream);
 	}
-	stream.waitForCompletion();
 	for (int i = 0; i < num; ++i) {
 		cv::cuda::add(*(raw + i), add_mat, *(raw + i), cv::noArray(), -1, stream);
 	}
-	stream.waitForCompletion();
 }
 }

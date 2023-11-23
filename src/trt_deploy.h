@@ -15,6 +15,7 @@ namespace helmet
  * @details subclassing the ILogger is necessary.
  * @note this is wired because it is needed by TensorRT.
  */
+
 class Logger: public nvinfer1::ILogger
 {
 public:
@@ -25,6 +26,13 @@ public:
 	 */
 	void log(Severity severity, const char *msg) noexcept override;
 };
+
+extern std::mutex m_mtx;
+extern std::atomic_int m_thread_num;
+
+//extern nvinfer1::IRuntime *m_runtime;
+//extern SharedRef<Logger> m_logger; ///< logger util.
+//extern nvinfer1::ICudaEngine *m_engine;
 
 /**
  * @brief This is main deploy class to invoke all inference functionalities.
@@ -38,7 +46,7 @@ public:
 	 * @brief constructor for deploy class.
 	 * @details this construction will not init all materials.
 	 */
-	TrtDeploy(SharedRef<Config>& config,int gpuID = 0);
+	TrtDeploy(SharedRef<Config> &config, int gpuID = 0);
 
 	/**
 	 * @brief virtual de-constructor to avoid memory leaking.
@@ -83,7 +91,7 @@ public:
 	 * @param img input images.
 	 * @param out_img output images.
 	 */
-	void Postprocessing(const SharedRef<TrtResults> &res, cv::Mat &img,int& alarm);
+	void Postprocessing(const SharedRef<TrtResults> &res, cv::Mat &img, int &alarm);
 
 protected:
 	/**
@@ -115,26 +123,31 @@ protected:
 	CudaMemAllocStatus MemAllocStatus();
 
 protected:
-	static thread_local bool INIT_FLAG; ///< to indicate the system has initialized.
+	bool INIT_FLAG = false; ///< to indicate the system has initialized.
 	SharedRef<Preprocessor> m_preprocessor = nullptr; ///< preprocessor object.
 	SharedRef<Postprocessor> m_postprocessor = nullptr; ///< post processor object.
-	nvinfer1::ICudaEngine* m_engine = nullptr; ///< cuda engine object.
-	nvinfer1::IRuntime* m_runtime = nullptr; ///< cuda runtime.
-	nvinfer1::IExecutionContext* m_execution_context = nullptr; ///< cuda context.
+
+	SharedRef<Logger> m_logger = createSharedRef<Logger>();
+	nvinfer1::ICudaEngine *m_engine = nullptr; ///< cuda engine object.
+	nvinfer1::IRuntime *m_runtime = nullptr;
+
+	nvinfer1::IExecutionContext *m_execution_context = nullptr; ///< cuda context.
 	cudaStream_t m_stream = nullptr; ///< for parallel purpose.
-	SharedRef<Logger> m_logger = nullptr; ///< logger util.
+	SharedRef<cv::cuda::Stream> m_thread_stream = nullptr;
 	std::vector<void *> m_device_ptr; ///< pointer to states on GPU side.
+	std::vector<void *> m_host_ptr;
+	std::vector<int> m_host_size;
 	std::vector<cv::cuda::GpuMat> m_cv_data;///< directly map from opencv GpuMat to TensorRT.
 	std::vector<cv::cuda::GpuMat> m_im_shape;
 	std::vector<cv::cuda::GpuMat> m_scale_factor;
 
-	std::vector<std::vector<float>> m_output_state; ///< output data.
-
 	ModelLoadStatus m_model_load_status; ///< model loading status.
 	CudaMemAllocStatus m_cuda_alloc_status; ///< allocation of memory for cuda.
 	SharedRef<Config> m_config;
+	int m_gpu_id = 0;
 
 	float m_curr_fps; ///< Frame per Second.
+
 };
 
 }

@@ -1,3 +1,4 @@
+#include <thread>
 #include "model.h"
 #include "config.h"
 #include "trt_deploy.h"
@@ -23,13 +24,13 @@ public:
 	cv::Mat m_roi_img;
 };
 
-static void *GenModel(int gpuID, SharedRef<Config> config)
+void *GenModel(int gpuID, SharedRef<Config> config)
 {
 	auto *model = new InferModel(gpuID, config);
 	return reinterpret_cast<void *>(model);
 }
 
-static cv::Mat genROI(const cv::Size s, const std::vector<int> &points, cv_Point *coords)
+cv::Mat genROI(const cv::Size s, const std::vector<int> &points, cv_Point *coords)
 {
 	if (points.empty()){
 		return {s, CV_8UC3, cv::Scalar::all(255)};
@@ -42,7 +43,7 @@ static cv::Mat genROI(const cv::Size s, const std::vector<int> &points, cv_Point
 	for (auto &each : points) {
 		std::vector<cv::Point> pts;
 		for (int j = sums; j < each + sums; ++j) {
-			pts.push_back(cv::Point(coords[j].x, coords[j].y));
+			pts.emplace_back(coords[j].x, coords[j].y);
 		}
 		sums += each;
 		contour.push_back(pts);
@@ -57,10 +58,12 @@ static cv::Mat genROI(const cv::Size s, const std::vector<int> &points, cv_Point
 
 cvModel *Allocate_Algorithm(cv::Mat &input_frame, int algID, int gpuID)
 {
+	cv::cuda::setDevice(gpuID);
+	cudaSetDevice(gpuID);
 	std::string file;
-	if (Util::checkFileExist("./helmet_detection.yaml"))
+	if (checkFileExist("./helmet_detection.yaml"))
 		file = "./helmet_detection.yaml";
-	else if (Util::checkFileExist("../config/helmet_detection.yaml")) {
+	else if (checkFileExist("../config/helmet_detection.yaml")) {
 		file = "../config/helmet_detection.yaml";
 	}
 	else {
@@ -94,16 +97,16 @@ void UpdateParams_Algorithm(cvModel *pModel)
 
 void Process_Algorithm(cvModel *pModel, cv::Mat &input_frame)
 {
+
 	auto model = reinterpret_cast<InferModel *>(pModel->iModel);
 	auto roi = pModel->p;
 	if (model->m_roi_img.empty()) {
 		model->m_roi_img = genROI(input_frame.size(), pModel->pointNum, roi);
 	}
 	cv::Mat removed_roi;
-
 	auto config = model->m_config;
-
 	input_frame.copyTo(removed_roi, model->m_roi_img);
+
 	model->mDeploy->Infer(removed_roi, model->mResult);
 	model->mDeploy->Postprocessing(model->mResult, input_frame, pModel->alarm);
 
@@ -118,6 +121,7 @@ void Process_Algorithm(cvModel *pModel, cv::Mat &input_frame)
 		}
 		sums += each;
 	}
+
 }
 
 void Destroy_Algorithm(cvModel *pModel)
@@ -127,10 +131,8 @@ void Destroy_Algorithm(cvModel *pModel)
 		delete model;
 		model = nullptr;
 	}
-	if (pModel) {
-		delete pModel;
-		pModel = nullptr;
-	}
+	delete pModel;
+	pModel = nullptr;
 }
 }
 
