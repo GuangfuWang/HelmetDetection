@@ -5,8 +5,59 @@
 
 namespace helmet
 {
+template<typename ARR>
+void print_array(const ARR& arr,const char* msg){
+	int num = arr.size();
+	if(num==0){
+		std::cout<<msg<<": NULL.\n";
+		return;
+	}
+	std::cout<<msg<<": {";
 
+	for(int i=0;i<num;i++){
+		std::cout<<arr[i];
+		if(i<num-1){
+			std::cout<<",";
+		}
+	}
+	std::cout<<"}.\n";
+}
 
+template<>
+void print_array(const std::vector<unsigned char>& arr,const char* msg){
+	int num = arr.size();
+	if(num==0){
+		std::cout<<msg<<": NULL.\n";
+		return;
+	}
+	std::cout<<msg<<": {";
+
+	for(int i=0;i<num;i++){
+		std::cout<<(int)arr[i];
+		if(i<num-1){
+			std::cout<<",";
+		}
+	}
+	std::cout<<"}.\n";
+}
+
+template<>
+void print_array(const std::vector<std::string>& arr,const char* msg){
+	int num = arr.size();
+	if(num==0){
+		std::cout<<msg<<": NULL.\n";
+		return;
+	}
+	std::cout<<msg<<": {";
+
+	for(int i=0;i<num;i++){
+		std::cout<<"\""<<arr[i]<<"\"";
+		if(i<num-1){
+			std::cout<<",";
+		}
+	}
+	std::cout<<"}.\n";
+}
 
 void Config::LoadConfigFile(int argc, char **argv, const std::string &file)
 {
@@ -49,20 +100,12 @@ void Config::LoadConfigFile(int argc, char **argv, const std::string &file)
 		if (model_node["INPUT_NAME"].IsDefined()) {
 			INPUT_NAME.clear();
 			INPUT_NAME = model_node["INPUT_NAME"].as<std::vector<std::string>>();
-
-			std::cout << "Read from YAML with inputs: [\t";
-			for (auto &each : INPUT_NAME)
-				std::cout << each << "\t";
-			std::cout <<"]"<< std::endl;
+			print_array(INPUT_NAME,"Read from YAML with inputs");
 		}
 		if (model_node["OUTPUT_NAMES"].IsDefined()) {
 			OUTPUT_NAMES.clear();
 			OUTPUT_NAMES = model_node["OUTPUT_NAMES"].as<std::vector<std::string>>();
-
-			std::cout << "Read from YAML with outputs: [\t";
-			for (auto &each : OUTPUT_NAMES)
-				std::cout << each << "\t";
-			std::cout <<"]"<< std::endl;
+			print_array(OUTPUT_NAMES,"Read from YAML with outputs");
 		}
 	}
 	else {
@@ -81,11 +124,7 @@ void Config::LoadConfigFile(int argc, char **argv, const std::string &file)
 		}
 		if (model_node["INPUT_SHAPE"].IsDefined()) {
 			INPUT_SHAPE = model_node["INPUT_SHAPE"].as<std::vector<int>>();
-
-			std::cout << "Read from YAML with input shapes: [\t";
-			for (auto &each : INPUT_SHAPE)
-				std::cout << each << "\t";
-			std::cout <<"]"<< std::endl;
+			print_array(INPUT_SHAPE,"Read from YAML with input shapes");
 		}
 	}
 	else {
@@ -140,19 +179,11 @@ void Config::LoadConfigFile(int argc, char **argv, const std::string &file)
 		}
 		if (model_node["TARGET_SIZE"].IsDefined()) {
 			TARGET_SIZE = model_node["TARGET_SIZE"].as<std::vector<int>>();
-
-			std::cout << "Read from YAML with target size: [\t";
-			for (auto &each : TARGET_SIZE)
-				std::cout << each << "\t";
-			std::cout <<"]"<< std::endl;
+			print_array(TARGET_SIZE,"Read from YAML with target size");
 		}
 		if (model_node["TRAIN_SIZE"].IsDefined()) {
 			TRAIN_SIZE = model_node["TRAIN_SIZE"].as<std::vector<int>>();
-
-			std::cout << "Read from YAML with train size: [\t";
-			for (auto &each : TRAIN_SIZE)
-				std::cout << each << "\t";
-			std::cout <<"]"<< std::endl;
+			print_array(TRAIN_SIZE,"Read from YAML with train size");
 		}
 		if (model_node["SHORT_SIZE"].IsDefined()) {
 			SHORT_SIZE = model_node["SHORT_SIZE"].as<unsigned int>();
@@ -160,27 +191,15 @@ void Config::LoadConfigFile(int argc, char **argv, const std::string &file)
 		}
 		if (model_node["PIPELINE_TYPE"].IsDefined()) {
 			PIPELINE_TYPE = model_node["PIPELINE_TYPE"].as<std::vector<std::string>>();
-
-			std::cout << "Read from YAML with pipelines: [\t";
-			for (auto &each : PIPELINE_TYPE)
-				std::cout << each << "\t";
-			std::cout <<"]"<< std::endl;
+			print_array(PIPELINE_TYPE,"Read from YAML with pipelines");
 		}
 		if (model_node["N_MEAN"].IsDefined()) {
 			N_MEAN = model_node["N_MEAN"].as<std::vector<float>>();
-
-			std::cout << "Read from YAML with mean: [\t";
-			for (auto &each : N_MEAN)
-				std::cout << each << "\t";
-			std::cout <<"]"<< std::endl;
+			print_array(N_MEAN,"Read from YAML with mean");
 		}
 		if (model_node["N_STD"].IsDefined()) {
 			N_STD = model_node["N_STD"].as<std::vector<float>>();
-
-			std::cout << "Read from YAML with std: [\t";
-			for (auto &each : N_STD)
-				std::cout << each << "\t";
-			std::cout <<"]"<< std::endl;
+			print_array(N_STD,"Read from YAML with std");
 		}
 
 	}
@@ -197,38 +216,22 @@ void Config::LoadConfigFile(int argc, char **argv, const std::string &file)
 		if (model_node["TEXT_COLOR"].IsDefined()) {
 			TEXT_COLOR = model_node["TEXT_COLOR"].as<std::vector<unsigned char>>();
 			std::swap(TEXT_COLOR[0], TEXT_COLOR[2]);
-
-			std::cout << "Read from YAML with text color: [\t";
-			for (auto &each : TEXT_COLOR)
-				std::cout << (int)each << "\t";
-			std::cout <<"]"<< std::endl;
+			print_array(TEXT_COLOR,"Read from YAML with text color");
 		}
 		if (model_node["BOX_COLOR"].IsDefined()) {
 			BOX_COLOR = model_node["BOX_COLOR"].as<std::vector<unsigned char>>();
 			std::swap(BOX_COLOR[0], BOX_COLOR[2]);
-
-			std::cout << "Read from YAML with box colors: [\t";
-			for (auto &each : BOX_COLOR)
-				std::cout << (int)each << "\t";
-			std::cout <<"]"<< std::endl;
+			print_array(BOX_COLOR,"Read from YAML with box colors");
 		}
 		if (model_node["ALARM_TEXT_COLOR"].IsDefined()) {
 			ALARM_TEXT_COLOR = model_node["ALARM_TEXT_COLOR"].as<std::vector<unsigned char>>();
 			std::swap(ALARM_TEXT_COLOR[0], ALARM_TEXT_COLOR[2]);
-
-			std::cout << "Read from YAML with alarm text: [\t";
-			for (auto &each : ALARM_TEXT_COLOR)
-				std::cout << (int)each << "\t";
-			std::cout <<"]"<< std::endl;
+			print_array(ALARM_TEXT_COLOR,"Read from YAML with alarm text colors");
 		}
 		if (model_node["ALARM_BOX_COLOR"].IsDefined()) {
 			ALARM_BOX_COLOR = model_node["ALARM_BOX_COLOR"].as<std::vector<unsigned char>>();
 			std::swap(ALARM_BOX_COLOR[0], ALARM_BOX_COLOR[2]);
-
-			std::cout << "Read from YAML with alarm box color: [\t";
-			for (auto &each : ALARM_BOX_COLOR)
-				std::cout << (int)each << "\t";
-			std::cout <<"]"<< std::endl;
+			print_array(ALARM_BOX_COLOR,"Read from YAML with alarm box colors");
 		}
 		if (model_node["TEXT_LINE_WIDTH"].IsDefined()) {
 			TEXT_LINE_WIDTH = model_node["TEXT_LINE_WIDTH"].as<float>();
@@ -264,10 +267,7 @@ void Config::LoadConfigFile(int argc, char **argv, const std::string &file)
 		if (model_node["POST_TEXT"].IsDefined()) {
 			POST_TEXT = model_node["POST_TEXT"].as<std::vector<std::string>>();
 
-			std::cout << "Read from YAML with post text: [\t";
-			for (auto &each : POST_TEXT)
-				std::cout << each << "\t";
-			std::cout <<"]"<< std::endl;
+			print_array(POST_TEXT,"Read from YAML with post text");
 		}
 		if (model_node["POST_TEXT_FONT_FILE"].IsDefined()) {
 			POST_TEXT_FONT_FILE = model_node["POST_TEXT_FONT_FILE"].as<std::string>();
@@ -295,21 +295,12 @@ void Config::LoadConfigFile(int argc, char **argv, const std::string &file)
 	if (!InLayerName.empty()) {
 		INPUT_NAME = parseNames(InLayerName, ' ');
 
-		std::cout << "Read from cmd with inputs: [\t";
-		for (auto &each : INPUT_NAME) {
-			std::cout << each << "\t";
-		}
-		std::cout <<"]"<< std::endl;
+		print_array(INPUT_NAME,"Read from cmd with inputs");
 	}
 	if (!OutLayerNames.empty()) {
 		OUTPUT_NAMES.clear();
 		OUTPUT_NAMES = parseNames(OutLayerNames, ' ');
-
-		std::cout << "Read from cmd with outputs: [\t";
-		for (auto &each : OUTPUT_NAMES) {
-			std::cout << each << "\t";
-		}
-		std::cout <<"]"<< std::endl;
+		print_array(OUTPUT_NAMES,"Read from cmd with outputs");
 	}
 	if (!ModelName.empty()) {
 		MODEL_NAME = ModelName;
