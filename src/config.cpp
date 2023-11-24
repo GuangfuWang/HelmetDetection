@@ -67,10 +67,10 @@ void Config::LoadConfigFile(int argc, char **argv, const std::string &file)
 	MODEL_NAME = DEPLOY_MODEL;
 	std::cout << "Read from cmake config with model name: " << DEPLOY_MODEL << std::endl;
 	INPUT_NAME = parseNames(MODEL_INPUT_NAME, ' ');
-	std::cout << "Read from cmake config with inputs: [" << MODEL_INPUT_NAME <<"]"<< std::endl;
+	print_array(INPUT_NAME,"Read from cmake config with inputs");
 	OUTPUT_NAMES.clear();
 	OUTPUT_NAMES = parseNames(MODEL_OUTPUT_NAMES, ' ');
-	std::cout << "Read from cmake config with outputs: [" << MODEL_OUTPUT_NAMES <<"]"<< std::endl;
+	print_array(OUTPUT_NAMES,"Read from cmake config with outputs");
 
 	if (!checkFileExist(file)) {
 		std::cerr << "Config file non exists! Aborting..." << std::endl;
