@@ -45,6 +45,7 @@ public:
 	unsigned int SHORT_SIZE = 340;
 	std::vector<std::string> PIPELINE_TYPE =
 		{"TopDownEvalAffine", "Resize", "LetterBoxResize", "NormalizeImage"};
+	int SAMPLE_DATA = 3;
 
 	std::vector<float> N_MEAN = {0.485f, 0.456f, 0.406f};
 	std::vector<float> N_STD = {0.229f, 0.224f, 0.225f};

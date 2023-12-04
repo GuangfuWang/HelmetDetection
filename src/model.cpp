@@ -15,6 +15,7 @@ public:
 		m_config = config;
 		mDeploy = createSharedRef<TrtDeploy>(config, gpuID);
 		mResult = createSharedRef<TrtResults>(config);
+		m_process = config->SAMPLE_DATA;
 	}
 
 public:
@@ -22,6 +23,7 @@ public:
 	SharedRef<TrtResults> mResult;
 	SharedRef<Config> m_config;
 	cv::Mat m_roi_img;
+	int m_process = 2;
 };
 
 void *GenModel(int gpuID, SharedRef<Config> config)
@@ -105,9 +107,15 @@ void Process_Algorithm(cvModel *pModel, cv::Mat &input_frame)
 	}
 	cv::Mat removed_roi;
 	auto config = model->m_config;
-	input_frame.copyTo(removed_roi, model->m_roi_img);
 
-	model->mDeploy->Infer(removed_roi, model->mResult);
+	if(model->m_process==config->SAMPLE_DATA){
+		input_frame.copyTo(removed_roi, model->m_roi_img);
+		model->mDeploy->Infer(removed_roi, model->mResult);
+	}
+	model->m_process--;
+	if(model->m_process<=0){
+		model->m_process = config->SAMPLE_DATA;
+	}
 	model->mDeploy->Postprocessing(model->mResult, input_frame, pModel->alarm);
 
 	int sums = 0;

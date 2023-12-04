@@ -59,6 +59,11 @@ void print_array(const std::vector<std::string>& arr,const char* msg){
 	std::cout<<"}.\n";
 }
 
+template<>
+void print_array(const int& arr,const char* msg){
+	std::cout<<msg<<": "<<arr<<std::endl;
+}
+
 void Config::LoadConfigFile(int argc, char **argv, const std::string &file)
 {
 	if (init)return;
@@ -200,6 +205,10 @@ void Config::LoadConfigFile(int argc, char **argv, const std::string &file)
 		if (model_node["N_STD"].IsDefined()) {
 			N_STD = model_node["N_STD"].as<std::vector<float>>();
 			print_array(N_STD,"Read from YAML with std");
+		}
+		if (model_node["SAMPLE_DATA"].IsDefined()) {
+			SAMPLE_DATA = model_node["SAMPLE_DATA"].as<int>();
+			print_array(SAMPLE_DATA,"Read from YAML with sample interval");
 		}
 
 	}

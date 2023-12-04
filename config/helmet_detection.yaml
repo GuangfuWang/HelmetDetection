@@ -27,6 +27,7 @@ PIPELINE:
   N_MEAN: [ 0.485, 0.456, 0.406 ] # mean value for each channel in normalization.
   N_STD: [ 0.229, 0.224, 0.225 ] # standard deviation for each channel in normalization
   TIMING: True
+  SAMPLE_DATA: 3
 
 POSTPROCESS:
   POST_MODE: 2 # Current 4 types of mode are supported: DRAW_LETTER = 0, DRAW_BOX = 1, DRAW_BOX_LETTER = 2,MASK_OUT = 3
